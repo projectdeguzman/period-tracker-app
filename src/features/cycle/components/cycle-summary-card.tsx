@@ -10,7 +10,7 @@ function TodayCardCta({ href, label, testId }: { href: string; label: string; te
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-accent-strong shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+      className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
       data-testid={testId}
     >
       {label}
@@ -31,13 +31,18 @@ export function CycleSummaryCard({ entries }: CycleSummaryCardProps) {
           <div className="space-y-3">
             <p className="text-sm uppercase tracking-[0.2em] text-white/72">Today</p>
             <h2 className="text-2xl font-semibold tracking-tight">Ready to start tracking?</h2>
+            <p className="text-sm leading-6 text-white/78">
+              Log your next period start to begin.
+            </p>
           </div>
 
-          <TodayCardCta
+          <Link
             href="/logs/cycle/new"
-            label="Log Period Start"
-            testId="today-log-period-start-cta"
-          />
+            data-testid="today-log-period-start-cta"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+          >
+            Log Period Start
+          </Link>
         </div>
       </article>
     );

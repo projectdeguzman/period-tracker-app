@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/features/shared/components/bottom-nav";
 import { CycleEntryCard } from "@/features/cycle/components/cycle-entry-card";
@@ -9,10 +10,29 @@ import { dashboardHighlights } from "@/constants/dashboard";
 import { useCycleEntries } from "@/lib/cycle-entry-store";
 import { useIntimacyEntries } from "@/lib/intimacy-store";
 
+function subscribeToClientReady() {
+  return () => {};
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
 export default function Home() {
+  const isClientReady = useSyncExternalStore(
+    subscribeToClientReady,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const cycleEntries = useCycleEntries();
-  const recentCycleEntries = cycleEntries.slice(0, 2);
-  const intimacyEntries = useIntimacyEntries().slice(0, 2);
+  const intimacyEntries = useIntimacyEntries();
+  const displayedCycleEntries = isClientReady ? cycleEntries : [];
+  const recentCycleEntries = displayedCycleEntries.slice(0, 2);
+  const recentIntimacyEntries = (isClientReady ? intimacyEntries : []).slice(0, 2);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-24 pt-6 sm:px-6">
@@ -47,7 +67,7 @@ export default function Home() {
       </section>
 
       <section className="mt-5">
-        <CycleSummaryCard entries={cycleEntries} />
+        <CycleSummaryCard entries={displayedCycleEntries} />
       </section>
 
       <section className="mt-6">
@@ -119,8 +139,8 @@ export default function Home() {
         </div>
 
         <div className="space-y-3">
-          {intimacyEntries.length > 0 ? (
-            intimacyEntries.map((entry) => (
+          {recentIntimacyEntries.length > 0 ? (
+            recentIntimacyEntries.map((entry) => (
               <IntimacyLogCard key={entry.id} entry={entry} />
             ))
           ) : (

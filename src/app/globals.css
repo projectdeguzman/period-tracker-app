@@ -45,7 +45,7 @@ body {
 }
 
 a {
-  color: inherit;
+  /* color: inherit; */ /* This is causing CTA text to blend with CTA background color */
   text-decoration: none;
 }
 
