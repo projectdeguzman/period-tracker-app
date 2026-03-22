@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { intimacyEntries as seedEntries } from "@/constants/dashboard";
 import type { IntimacyEntry, Mood } from "@/types/tracking";
 
 const STORAGE_KEY = "luna.intimacyEntries";
@@ -14,7 +13,7 @@ type NewIntimacyEntry = {
   mood: Mood;
 };
 
-let entries: IntimacyEntry[] = [...seedEntries];
+let entries: IntimacyEntry[] = [];
 let hasLoadedFromStorage = false;
 
 const listeners = new Set<() => void>();
@@ -59,6 +58,7 @@ function initializeEntries() {
   const storedEntries = window.localStorage.getItem(STORAGE_KEY);
 
   if (!storedEntries) {
+    entries = [];
     return false;
   }
 

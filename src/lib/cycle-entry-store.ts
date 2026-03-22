@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { cycleEntries as seedEntries } from "@/constants/dashboard";
 import type {
   CycleEntry,
   CycleLogType,
@@ -24,7 +23,7 @@ type NewCycleEntry = {
   notes: string;
 };
 
-let entries: CycleEntry[] = [...seedEntries];
+let entries: CycleEntry[] = [];
 let hasLoadedFromStorage = false;
 
 const listeners = new Set<() => void>();
@@ -82,6 +81,7 @@ function initializeEntries() {
     window.localStorage.getItem(LEGACY_STORAGE_KEY);
 
   if (!storedEntries) {
+    entries = [];
     return false;
   }
 
