@@ -47,6 +47,7 @@ function subscribe(listener: () => void) {
 }
 
 function getSnapshot() {
+  initializeEntries();
   return entries;
 }
 
@@ -122,4 +123,10 @@ export function addCycleEntry(entry: NewCycleEntry) {
 
 export function useCycleEntries() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+export function useCycleEntry(id: string) {
+  const cycleEntries = useCycleEntries();
+
+  return cycleEntries.find((entry) => entry.id === id) ?? null;
 }

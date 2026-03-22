@@ -37,6 +37,7 @@ function subscribe(listener: () => void) {
 }
 
 function getSnapshot() {
+  initializeEntries();
   return entries;
 }
 
@@ -94,4 +95,10 @@ export function addIntimacyEntry(entry: NewIntimacyEntry) {
 
 export function useIntimacyEntries() {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
+
+export function useIntimacyEntry(id: string) {
+  const intimacyEntries = useIntimacyEntries();
+
+  return intimacyEntries.find((entry) => entry.id === id) ?? null;
 }
