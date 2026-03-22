@@ -1,8 +1,8 @@
 import type {
+  CycleEntry,
   CycleSnapshot,
   DashboardHighlight,
   IntimacyEntry,
-  PeriodEntry,
 } from "@/types/tracking";
 
 export const dashboardHighlights: DashboardHighlight[] = [
@@ -39,12 +39,16 @@ export const intimacyEntries: IntimacyEntry[] = [
   },
 ];
 
-export const periodEntries: PeriodEntry[] = [
+export const cycleEntries: CycleEntry[] = [
   {
-    id: "period-entry-1",
-    startDate: "2026-03-02",
-    endDate: "2026-03-06",
-    flowIntensity: "medium",
-    symptoms: "Cramps, fatigue, mild headaches",
+    id: "cycle-entry-1",
+    date: "2026-03-02",
+    logType: "Period started",
+    symptoms: ["Cramps", "Fatigue"],
+    mood: "sensitive",
+    cravings: "Dark chocolate",
+    sexDrive: "Low",
+    discharge: "None",
+    notes: "Energy dipped during the first two days.",
   },
 ];

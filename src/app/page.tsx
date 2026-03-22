@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { BottomNav } from "@/features/shared/components/bottom-nav";
+import { CycleEntryCard } from "@/features/cycle/components/cycle-entry-card";
 import { CycleSummaryCard } from "@/features/cycle/components/cycle-summary-card";
 import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
 import { dashboardHighlights, todayCycleSnapshot } from "@/constants/dashboard";
+import { useCycleEntries } from "@/lib/cycle-entry-store";
 import { useIntimacyEntries } from "@/lib/intimacy-store";
 
 export default function Home() {
-  const intimacyEntries = useIntimacyEntries();
+  const cycleEntries = useCycleEntries().slice(0, 2);
+  const intimacyEntries = useIntimacyEntries().slice(0, 2);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-24 pt-6 sm:px-6">
@@ -60,12 +63,14 @@ export default function Home() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Link
-            href="/logs/period/new"
+            href="/logs/cycle/new"
             className="rounded-[1.5rem] bg-accent px-4 py-4 text-left text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong"
           >
-            <span className="block text-sm font-semibold">Log period</span>
+            <span className="block text-sm font-semibold">
+              Log Period / Symptoms
+            </span>
             <span className="mt-1 block text-sm text-white/78">
-              Record flow, symptoms, and notes.
+              Track bleeding, symptoms, or ovulation signs.
             </span>
           </Link>
 
@@ -79,12 +84,37 @@ export default function Home() {
             </span>
           </Link>
 
-          <button className="rounded-[1.5rem] border border-line bg-surface-muted px-4 py-4 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-accent-soft">
+          <Link
+            href="/calendar"
+            className="rounded-[1.5rem] border border-line bg-surface-muted px-4 py-4 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-accent-soft"
+          >
             <span className="block text-sm font-semibold">View calendar</span>
             <span className="mt-1 block text-sm text-foreground/62">
               Review cycle history and trends.
             </span>
-          </button>
+          </Link>
+        </div>
+      </section>
+
+      <section className="mt-5">
+        <div className="mb-3">
+          <p className="text-sm font-semibold">Recent cycle entries</p>
+          <p className="text-sm text-foreground/60">
+            Quick cycle events and symptom logs from your recent check-ins.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          {cycleEntries.length > 0 ? (
+            cycleEntries.map((entry) => (
+              <CycleEntryCard key={entry.id} entry={entry} />
+            ))
+          ) : (
+            <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58">
+              No cycle entries yet. Start with Log Period / Symptoms to save
+              your first entry.
+            </article>
+          )}
         </div>
       </section>
 
@@ -96,15 +126,24 @@ export default function Home() {
               Quick entries built for privacy-first journaling.
             </p>
           </div>
-          <button className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium">
+          <Link
+            href="/logs/intimacy/new"
+            className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium"
+          >
             + New
-          </button>
+          </Link>
         </div>
 
         <div className="space-y-3">
-          {intimacyEntries.map((entry) => (
-            <IntimacyLogCard key={entry.id} entry={entry} />
-          ))}
+          {intimacyEntries.length > 0 ? (
+            intimacyEntries.map((entry) => (
+              <IntimacyLogCard key={entry.id} entry={entry} />
+            ))
+          ) : (
+            <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58">
+              No intimacy logs yet. Tap + New to create your first entry.
+            </article>
+          )}
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { PeriodEntryForm } from "@/features/period/components/period-entry-form";
+import { CalendarView } from "@/features/calendar/components/calendar-view";
 
-export default function NewPeriodLogPage() {
+export default function CalendarPage() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-6 sm:px-6">
       <div className="mb-4">
@@ -13,7 +13,7 @@ export default function NewPeriodLogPage() {
         </Link>
       </div>
 
-      <PeriodEntryForm />
+      <CalendarView />
     </main>
   );
 }

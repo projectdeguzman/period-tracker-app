@@ -5,7 +5,21 @@ export type Mood =
   | "low"
   | "playful";
 
-export type FlowIntensity = "light" | "medium" | "heavy";
+export type CycleLogType =
+  | "Period started"
+  | "Period ended"
+  | "Symptoms"
+  | "Ovulation signs";
+
+export type SexDriveLevel = "Low" | "Normal" | "High";
+
+export type DischargeType =
+  | "None"
+  | "Dry"
+  | "Sticky"
+  | "Creamy"
+  | "Watery"
+  | "Egg-white";
 
 export type CycleSnapshot = {
   currentDay: number;
@@ -25,12 +39,16 @@ export type IntimacyEntry = {
   note: string;
 };
 
-export type PeriodEntry = {
+export type CycleEntry = {
   id: string;
-  startDate: string;
-  endDate: string;
-  flowIntensity: FlowIntensity;
-  symptoms: string;
+  date: string;
+  logType: CycleLogType;
+  symptoms: string[];
+  mood: Mood | "";
+  cravings: string;
+  sexDrive: SexDriveLevel | "";
+  discharge: DischargeType | "";
+  notes: string;
 };
 
 export type DashboardHighlight = {
