@@ -7,8 +7,13 @@ type SummaryItem = {
   value: string;
 };
 
+type DashboardSummary = {
+  items: SummaryItem[];
+  nextPeriodHelperText?: string;
+};
+
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
-const MIN_PERIOD_STARTS_FOR_ESTIMATE = 3;
+const MIN_PERIOD_STARTS_FOR_ESTIMATE = 2;
 
 function getDayDifference(startDate: string, endDate: string) {
   return Math.round(
@@ -35,17 +40,16 @@ function formatNextPeriodEstimate(cycleEntries: CycleEntry[]) {
     .sort((left, right) => left.date.localeCompare(right.date));
 
   if (periodStarts.length < MIN_PERIOD_STARTS_FOR_ESTIMATE) {
-    return "N/A";
+    return {
+      helperText: "* Add 2 cycles to unlock predictions",
+      value: "N/A",
+    };
   }
 
   const cycleLengths: number[] = [];
 
   for (let index = 1; index < periodStarts.length; index += 1) {
     cycleLengths.push(getDayDifference(periodStarts[index - 1].date, periodStarts[index].date));
-  }
-
-  if (cycleLengths.length < MIN_PERIOD_STARTS_FOR_ESTIMATE - 1) {
-    return "N/A";
   }
 
   const averageCycleLength = Math.round(
@@ -56,10 +60,10 @@ function formatNextPeriodEstimate(cycleEntries: CycleEntry[]) {
   const daysUntilNextPeriod = averageCycleLength - elapsedDays;
 
   if (daysUntilNextPeriod <= 0) {
-    return "Soon";
+    return { value: "Soon" };
   }
 
-  return `${daysUntilNextPeriod} days`;
+  return { value: `${daysUntilNextPeriod} days` };
 }
 
 function toDateKey(date: Date) {
@@ -89,22 +93,27 @@ function countLogsThisWeek(cycleEntries: CycleEntry[], intimacyEntries: Intimacy
 export function getDashboardSummary(
   cycleEntries: CycleEntry[],
   intimacyEntries: IntimacyEntry[],
-): SummaryItem[] {
-  return [
-    {
-      label: "Cycle Day",
-      testId: "dashboard-summary-cycle-day",
-      value: formatCycleDay(cycleEntries),
-    },
-    {
-      label: "Next Period",
-      testId: "dashboard-summary-next-period",
-      value: formatNextPeriodEstimate(cycleEntries),
-    },
-    {
-      label: "Logs This Week",
-      testId: "dashboard-summary-logs-this-week",
-      value: `${countLogsThisWeek(cycleEntries, intimacyEntries)}`,
-    },
-  ];
+): DashboardSummary {
+  const nextPeriod = formatNextPeriodEstimate(cycleEntries);
+
+  return {
+    items: [
+      {
+        label: "Cycle Day",
+        testId: "dashboard-summary-cycle-day",
+        value: formatCycleDay(cycleEntries),
+      },
+      {
+        label: "Next Period",
+        testId: "dashboard-summary-next-period",
+        value: nextPeriod.value,
+      },
+      {
+        label: "Logs This Week",
+        testId: "dashboard-summary-logs-this-week",
+        value: `${countLogsThisWeek(cycleEntries, intimacyEntries)}`,
+      },
+    ],
+    nextPeriodHelperText: nextPeriod.helperText,
+  };
 }

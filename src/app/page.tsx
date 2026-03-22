@@ -57,7 +57,7 @@ export default function Home() {
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-3">
-          {dashboardSummary.map((item) => (
+          {dashboardSummary.items.map((item) => (
             <article
               key={item.label}
               data-testid={item.testId}
@@ -75,6 +75,14 @@ export default function Home() {
             </article>
           ))}
         </div>
+        {dashboardSummary.nextPeriodHelperText ? (
+          <p
+            className="mt-3 text-left text-xs text-foreground/50"
+            data-testid="dashboard-summary-next-period-helper"
+          >
+            {dashboardSummary.nextPeriodHelperText}
+          </p>
+        ) : null}
       </section>
 
       <section className="mt-5">
