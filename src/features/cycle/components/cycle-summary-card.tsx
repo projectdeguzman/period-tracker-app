@@ -1,118 +1,82 @@
 import Link from "next/link";
 import type { CycleEntry } from "@/types/tracking";
+import { getTodayCycleState } from "@/features/cycle/lib/today-cycle";
 
 type CycleSummaryCardProps = {
   entries: CycleEntry[];
 };
 
-function getStartOfLocalDay(dateString: string) {
-  const [year, month, day] = dateString.split("-").map(Number);
-
-  return new Date(year, (month ?? 1) - 1, day ?? 1);
-}
-
-function getTodayDate() {
-  const now = new Date();
-
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function getLatestPeriodStart(entries: CycleEntry[]) {
-  return entries
-    .filter((entry) => entry.logType === "Period started")
-    .sort((left, right) => right.date.localeCompare(left.date))[0] ?? null;
-}
-
-function getCycleDay(periodStartDate: string) {
-  const millisecondsPerDay = 1000 * 60 * 60 * 24;
-  const elapsedDays = Math.floor(
-    (getTodayDate().getTime() - getStartOfLocalDay(periodStartDate).getTime()) /
-      millisecondsPerDay,
+function TodayCardCta({ href, label, testId }: { href: string; label: string; testId: string }) {
+  return (
+    <Link
+      href={href}
+      className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-accent-strong shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+      data-testid={testId}
+    >
+      {label}
+    </Link>
   );
-
-  return Math.max(elapsedDays + 1, 1);
 }
 
 export function CycleSummaryCard({ entries }: CycleSummaryCardProps) {
-  const latestPeriodStart = getLatestPeriodStart(entries);
+  const todayState = getTodayCycleState(entries);
 
-  if (!latestPeriodStart) {
+  if (todayState.kind === "no-start") {
     return (
       <article
         className="rounded-[1.75rem] bg-accent px-5 py-5 text-white shadow-[0_16px_40px_rgba(169,52,86,0.24)]"
-        data-testid="today-cycle-card-empty"
+        data-testid="today-cycle-card-no-start"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="max-w-sm">
+        <div className="flex flex-col gap-6">
+          <div className="space-y-3">
             <p className="text-sm uppercase tracking-[0.2em] text-white/72">Today</p>
-            <h2 className="mt-2 text-2xl font-semibold">No current cycle day yet</h2>
-            <p className="mt-4 text-sm leading-6 text-white/84">
-              Log your next period start to begin tracking your current cycle day here.
-            </p>
+            <h2 className="text-2xl font-semibold tracking-tight">Ready to start tracking?</h2>
           </div>
 
-          <div className="rounded-full bg-white/18 px-3 py-1 text-sm font-medium">
-            Incomplete
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link
+          <TodayCardCta
             href="/logs/cycle/new"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-accent-strong transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
-            data-testid="log-period-start-cta"
-            aria-label="Log Period Start"
-          >
-            Log Period Start
-          </Link>
-          <span className="inline-flex items-center rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/84">
-            Start dates power today&apos;s cycle day.
-          </span>
+            label="Log Period Start"
+            testId="today-log-period-start-cta"
+          />
         </div>
       </article>
     );
   }
 
-  const currentDay = getCycleDay(latestPeriodStart.date);
-  const summaryTags = latestPeriodStart.symptoms.slice(0, 3);
+  const isCycleInProgress = todayState.kind === "cycle-in-progress";
+  const statusLabel = isCycleInProgress ? "Cycle in progress" : "Period in progress";
+  const ctaLabel = isCycleInProgress ? "Log symptoms" : "Log Period End";
+  const ctaTestId = isCycleInProgress
+    ? "today-log-symptoms-cta"
+    : "today-log-period-end-cta";
+
   return (
     <article
       className="rounded-[1.75rem] bg-accent px-5 py-5 text-white shadow-[0_16px_40px_rgba(169,52,86,0.24)]"
-      data-testid="today-cycle-card-active"
+      data-testid={
+        isCycleInProgress ? "today-cycle-card-cycle-in-progress" : "today-cycle-card-period-in-progress"
+      }
     >
-      <div className="flex flex-col gap-4">
-        <div className="min-w-0">
+      <div className="flex flex-col gap-6">
+        <div className="space-y-3">
           <p className="text-sm uppercase tracking-[0.2em] text-white/72">Today</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-            Day <span data-testid="today-cycle-day">{currentDay}</span>
-          </h2>
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        {summaryTags.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-white/72">Common during this time</p>
-            <div className="flex flex-wrap gap-2" data-testid="today-cycle-symptoms">
-              {summaryTags.map((symptom) => (
-                <span
-                  key={symptom}
-                  className="rounded-full bg-white/16 px-3 py-1.5 text-sm"
-                >
-                  {symptom}
-                </span>
-              ))}
-            </div>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+              Day <span data-testid="today-cycle-day">{todayState.currentDay}</span>
+            </h2>
+            <p className="text-base font-medium text-white/92" data-testid="today-cycle-status">
+              {statusLabel}
+            </p>
+            {isCycleInProgress ? (
+              <p className="text-sm text-white/78" data-testid="today-period-length">
+                Period lasted {todayState.periodLengthDays} day
+                {todayState.periodLengthDays === 1 ? "" : "s"}
+              </p>
+            ) : null}
           </div>
-        ) : null}
+        </div>
 
-        <Link
-          href="/logs/cycle/new"
-          className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/24 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
-          data-testid="today-log-cycle-entry"
-        >
-          Log cycle update
-        </Link>
+        <TodayCardCta href="/logs/cycle/new" label={ctaLabel} testId={ctaTestId} />
       </div>
     </article>
   );
