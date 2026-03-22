@@ -5,12 +5,13 @@ import { BottomNav } from "@/features/shared/components/bottom-nav";
 import { CycleEntryCard } from "@/features/cycle/components/cycle-entry-card";
 import { CycleSummaryCard } from "@/features/cycle/components/cycle-summary-card";
 import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
-import { dashboardHighlights, todayCycleSnapshot } from "@/constants/dashboard";
+import { dashboardHighlights } from "@/constants/dashboard";
 import { useCycleEntries } from "@/lib/cycle-entry-store";
 import { useIntimacyEntries } from "@/lib/intimacy-store";
 
 export default function Home() {
-  const cycleEntries = useCycleEntries().slice(0, 2);
+  const cycleEntries = useCycleEntries();
+  const recentCycleEntries = cycleEntries.slice(0, 2);
   const intimacyEntries = useIntimacyEntries().slice(0, 2);
 
   return (
@@ -46,7 +47,7 @@ export default function Home() {
       </section>
 
       <section className="mt-5">
-        <CycleSummaryCard snapshot={todayCycleSnapshot} />
+        <CycleSummaryCard entries={cycleEntries} />
       </section>
 
       <section className="mt-6">
@@ -83,7 +84,7 @@ export default function Home() {
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-base font-semibold">Recent cycle</p>
-          {cycleEntries.length > 0 ? (
+          {recentCycleEntries.length > 0 ? (
             <Link
               href="/logs/cycle/new"
               className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium"
@@ -94,8 +95,8 @@ export default function Home() {
         </div>
 
         <div className="space-y-3">
-          {cycleEntries.length > 0 ? (
-            cycleEntries.map((entry) => (
+          {recentCycleEntries.length > 0 ? (
+            recentCycleEntries.map((entry) => (
               <CycleEntryCard key={entry.id} entry={entry} />
             ))
           ) : (
