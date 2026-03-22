@@ -33,13 +33,6 @@ export function CycleSummaryCard({ snapshot }: CycleSummaryCardProps) {
           </span>
         ))}
       </div>
-
-      <div className="mt-5 rounded-2xl bg-white/12 px-4 py-3">
-        <p className="text-sm text-white/74">Prediction</p>
-        <p className="mt-1 text-base font-medium">
-          Next period expected in {snapshot.nextPeriodInDays} days.
-        </p>
-      </div>
     </article>
   );
 }
