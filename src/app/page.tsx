@@ -6,8 +6,8 @@ import { BottomNav } from "@/features/shared/components/bottom-nav";
 import { CycleEntryCard } from "@/features/cycle/components/cycle-entry-card";
 import { CycleSummaryCard } from "@/features/cycle/components/cycle-summary-card";
 import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
-import { dashboardHighlights } from "@/constants/dashboard";
 import { useCycleEntries } from "@/lib/cycle-entry-store";
+import { getDashboardSummary } from "@/lib/dashboard-summary";
 import { useIntimacyEntries } from "@/lib/intimacy-store";
 
 function subscribeToClientReady() {
@@ -31,8 +31,13 @@ export default function Home() {
   const cycleEntries = useCycleEntries();
   const intimacyEntries = useIntimacyEntries();
   const displayedCycleEntries = isClientReady ? cycleEntries : [];
+  const displayedIntimacyEntries = isClientReady ? intimacyEntries : [];
   const recentCycleEntries = displayedCycleEntries.slice(0, 2);
-  const recentIntimacyEntries = (isClientReady ? intimacyEntries : []).slice(0, 2);
+  const recentIntimacyEntries = displayedIntimacyEntries.slice(0, 2);
+  const dashboardSummary = getDashboardSummary(
+    displayedCycleEntries,
+    displayedIntimacyEntries,
+  );
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-24 pt-6 sm:px-6">
@@ -52,15 +57,21 @@ export default function Home() {
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-3">
-          {dashboardHighlights.map((item) => (
+          {dashboardSummary.map((item) => (
             <article
               key={item.label}
+              data-testid={item.testId}
               className="rounded-2xl border border-line bg-surface-muted px-3 py-4"
             >
               <p className="text-[11px] uppercase tracking-[0.2em] text-foreground/50">
                 {item.label}
               </p>
-              <p className="mt-2 text-xl font-semibold tracking-tight">{item.value}</p>
+              <p
+                className="mt-2 text-xl font-semibold tracking-tight"
+                data-testid={`${item.testId}-value`}
+              >
+                {item.value}
+              </p>
             </article>
           ))}
         </div>
