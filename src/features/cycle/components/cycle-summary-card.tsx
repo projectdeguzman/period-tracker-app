@@ -10,7 +10,7 @@ function TodayCardCta({ href, label, testId }: { href: string; label: string; te
   return (
     <Link
       href={href}
-      className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-accent-strong shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
+      className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
       data-testid={testId}
     >
       {label}
