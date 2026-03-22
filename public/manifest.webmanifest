@@ -1,0 +1,21 @@
+{
+  "name": "Luna",
+  "short_name": "Luna",
+  "description": "A mobile-first MVP for period and intimacy tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff6fb",
+  "theme_color": "#f5b7d7",
+  "icons": [
+    {
+      "src": "/luna-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/luna-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

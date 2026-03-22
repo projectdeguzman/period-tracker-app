@@ -16,6 +16,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Luna",
   description: "A mobile-first MVP for period and intimacy tracking.",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/luna-icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/luna-icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Luna",
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
