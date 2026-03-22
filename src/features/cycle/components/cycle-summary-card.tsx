@@ -75,36 +75,34 @@ export function CycleSummaryCard({ entries }: CycleSummaryCardProps) {
 
   const currentDay = getCycleDay(latestPeriodStart.date);
   const summaryTags = latestPeriodStart.symptoms.slice(0, 3);
-  const moodLabel = latestPeriodStart.mood || "Tracking";
-
   return (
     <article
       className="rounded-[1.75rem] bg-accent px-5 py-5 text-white shadow-[0_16px_40px_rgba(169,52,86,0.24)]"
       data-testid="today-cycle-card-active"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div className="min-w-0">
           <p className="text-sm uppercase tracking-[0.2em] text-white/72">Today</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight">
             Day <span data-testid="today-cycle-day">{currentDay}</span>
           </h2>
         </div>
-        <div className="rounded-full bg-white/18 px-3 py-1 text-sm font-medium capitalize">
-          {moodLabel}
-        </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         {summaryTags.length > 0 ? (
-          <div className="flex flex-wrap gap-2" data-testid="today-cycle-symptoms">
-            {summaryTags.map((symptom) => (
-              <span
-                key={symptom}
-                className="rounded-full bg-white/16 px-3 py-1.5 text-sm"
-              >
-                {symptom}
-              </span>
-            ))}
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-white/72">Common during this time</p>
+            <div className="flex flex-wrap gap-2" data-testid="today-cycle-symptoms">
+              {summaryTags.map((symptom) => (
+                <span
+                  key={symptom}
+                  className="rounded-full bg-white/16 px-3 py-1.5 text-sm"
+                >
+                  {symptom}
+                </span>
+              ))}
+            </div>
           </div>
         ) : null}
 
