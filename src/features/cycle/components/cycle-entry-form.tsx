@@ -24,6 +24,7 @@ const logTypeOptions: CycleLogType[] = [
 
 const symptomOptions = [
   "Cramps",
+  "Spotting",
   "Pelvic pain (left)",
   "Pelvic pain (right)",
   "Bloating",
