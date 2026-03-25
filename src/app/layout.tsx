@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { ensureAuthenticatedProfile } from "@/lib/supabase/server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,11 +32,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
+  await ensureAuthenticatedProfile();
+
   return (
     <html
       lang="en"

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/lib/format-date";
-import { useIntimacyEntry } from "@/lib/intimacy-store";
+import { useIntimacyEntryState } from "@/lib/intimacy-store";
 
 type IntimacyEntryDetailProps = {
   id: string;
@@ -10,7 +10,7 @@ type IntimacyEntryDetailProps = {
 
 export function IntimacyEntryDetail({ id }: IntimacyEntryDetailProps) {
   const router = useRouter();
-  const entry = useIntimacyEntry(id);
+  const { entry, errorMessage, status } = useIntimacyEntryState(id);
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -32,7 +32,25 @@ export function IntimacyEntryDetail({ id }: IntimacyEntryDetailProps) {
         Back
       </button>
 
-      {entry ? (
+      {status === "loading" || status === "idle" ? (
+        <section
+          data-testid="intimacy-entry-loading"
+          className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
+        >
+          Loading intimacy entry...
+        </section>
+      ) : null}
+
+      {status === "error" ? (
+        <section
+          data-testid="intimacy-entry-error"
+          className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
+        >
+          {errorMessage || "Unable to load this intimacy entry right now."}
+        </section>
+      ) : null}
+
+      {status === "ready" && entry ? (
         <section
           data-testid="intimacy-entry-detail"
           className="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-[0_18px_60px_rgba(160,73,98,0.12)] backdrop-blur"
@@ -92,15 +110,17 @@ export function IntimacyEntryDetail({ id }: IntimacyEntryDetailProps) {
             </div>
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {status === "ready" && !entry ? (
         <section
           data-testid="intimacy-entry-not-found"
           className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
         >
-          This intimacy entry could not be found. It may have been cleared from
-          local storage or never saved on this device.
+          This intimacy entry could not be found. It may have been deleted or
+          may not belong to your account.
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

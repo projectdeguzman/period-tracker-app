@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { formatShortDate } from "@/lib/format-date";
-import { useCycleEntry } from "@/lib/cycle-entry-store";
+import { useCycleEntryState } from "@/lib/cycle-entry-store";
 
 type CycleEntryDetailProps = {
   id: string;
@@ -10,7 +10,7 @@ type CycleEntryDetailProps = {
 
 export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
   const router = useRouter();
-  const entry = useCycleEntry(id);
+  const { entry, errorMessage, status } = useCycleEntryState(id);
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -32,7 +32,25 @@ export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
         Back
       </button>
 
-      {entry ? (
+      {status === "loading" || status === "idle" ? (
+        <section
+          data-testid="cycle-entry-loading"
+          className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
+        >
+          Loading cycle entry...
+        </section>
+      ) : null}
+
+      {status === "error" ? (
+        <section
+          data-testid="cycle-entry-error"
+          className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
+        >
+          {errorMessage || "Unable to load this cycle entry right now."}
+        </section>
+      ) : null}
+
+      {status === "ready" && entry ? (
         <section
           data-testid="cycle-entry-detail"
           className="rounded-[2rem] border border-white/70 bg-white/85 p-5 shadow-[0_18px_60px_rgba(160,73,98,0.12)] backdrop-blur"
@@ -121,15 +139,17 @@ export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
             </div>
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {status === "ready" && !entry ? (
         <section
           data-testid="cycle-entry-not-found"
           className="rounded-[2rem] border border-dashed border-line bg-white/80 p-5 text-sm leading-6 text-foreground/62 shadow-[0_18px_60px_rgba(160,73,98,0.08)]"
         >
-          This cycle entry could not be found. It may have been cleared from
-          local storage or never saved on this device.
+          This cycle entry could not be found. It may have been deleted or may
+          not belong to your account.
         </section>
-      )}
+      ) : null}
     </div>
   );
 }

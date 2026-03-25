@@ -81,6 +81,8 @@ const initialValues: CycleFormValues = {
 export function CycleEntryForm() {
   const router = useRouter();
   const [values, setValues] = useState<CycleFormValues>(initialValues);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateValue<K extends keyof CycleFormValues>(
     key: K,
@@ -99,11 +101,23 @@ export function CycleEntryForm() {
     });
   }
 
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (event) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
-    addCycleEntry(values);
-    console.log("Cycle entry draft:", values);
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      await addCycleEntry(values);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to save cycle entry.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     router.push("/");
+    router.refresh();
   };
 
   const handleDateChange: ChangeEventHandler<HTMLInputElement> = (event) => {
@@ -375,13 +389,23 @@ export function CycleEntryForm() {
         </label>
       </div>
 
+      {errorMessage ? (
+        <p
+          className="mt-4 rounded-2xl border border-accent/20 bg-accent-soft/60 px-4 py-3 text-sm text-accent-strong"
+          data-testid="cycle-entry-form-error"
+        >
+          {errorMessage}
+        </p>
+      ) : null}
+
       <div className="mt-6 flex items-center gap-3">
         <button
           type="submit"
+          disabled={isSubmitting}
           data-testid="save-cycle-entry"
-          className="flex-1 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong"
+          className="flex-1 rounded-full bg-accent px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Save entry
+          {isSubmitting ? "Saving..." : "Save entry"}
         </button>
         <Link
           href="/"

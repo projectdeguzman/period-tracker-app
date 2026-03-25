@@ -2,13 +2,18 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
+import { AuthStatusActions } from "@/features/auth/components/auth-status-actions";
 import { BottomNav } from "@/features/shared/components/bottom-nav";
 import { CycleEntryCard } from "@/features/cycle/components/cycle-entry-card";
 import { CycleSummaryCard } from "@/features/cycle/components/cycle-summary-card";
 import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
-import { useCycleEntries } from "@/lib/cycle-entry-store";
+import { useCycleEntries, useCycleEntriesStatus } from "@/lib/cycle-entry-store";
 import { getDashboardSummary } from "@/lib/dashboard-summary";
-import { useIntimacyEntries } from "@/lib/intimacy-store";
+import {
+  importLegacyIntimacyEntries,
+  useIntimacyEntries,
+  useIntimacyEntriesStatus,
+} from "@/lib/intimacy-store";
 
 function subscribeToClientReady() {
   return () => {};
@@ -29,8 +34,11 @@ export default function Home() {
     getServerSnapshot,
   );
   const cycleEntries = useCycleEntries();
+  const cycleEntriesStatus = useCycleEntriesStatus();
   const intimacyEntries = useIntimacyEntries();
-  const displayedCycleEntries = isClientReady ? cycleEntries : [];
+  const intimacyEntriesStatus = useIntimacyEntriesStatus();
+  const displayedCycleEntries =
+    isClientReady && cycleEntriesStatus.status === "ready" ? cycleEntries : [];
   const displayedIntimacyEntries = isClientReady ? intimacyEntries : [];
   const recentCycleEntries = displayedCycleEntries.slice(0, 2);
   const recentIntimacyEntries = displayedIntimacyEntries.slice(0, 2);
@@ -38,6 +46,10 @@ export default function Home() {
     displayedCycleEntries,
     displayedIntimacyEntries,
   );
+
+  async function handleImportLegacyIntimacyEntries() {
+    await importLegacyIntimacyEntries();
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-24 pt-6 sm:px-6">
@@ -51,9 +63,7 @@ export default function Home() {
               Cycle tracking, simplified.
             </h1>
           </div>
-          <div className="rounded-full bg-accent-soft px-3 py-1 text-sm font-medium text-accent-strong">
-            MVP
-          </div>
+          <AuthStatusActions />
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-3">
@@ -86,7 +96,29 @@ export default function Home() {
       </section>
 
       <section className="mt-5">
-        <CycleSummaryCard entries={displayedCycleEntries} />
+        {isClientReady &&
+        (cycleEntriesStatus.status === "loading" ||
+          cycleEntriesStatus.status === "idle") ? (
+          <article
+            data-testid="today-cycle-loading"
+            className="rounded-[1.75rem] border border-dashed border-line bg-white/80 px-5 py-5 text-sm text-foreground/62 shadow-[0_16px_40px_rgba(160,73,98,0.08)]"
+          >
+            Loading today&apos;s cycle...
+          </article>
+        ) : null}
+
+        {isClientReady && cycleEntriesStatus.status === "error" ? (
+          <article
+            data-testid="today-cycle-error"
+            className="rounded-[1.75rem] border border-dashed border-line bg-white/80 px-5 py-5 text-sm text-foreground/62 shadow-[0_16px_40px_rgba(160,73,98,0.08)]"
+          >
+            {cycleEntriesStatus.errorMessage || "Unable to load today&apos;s cycle."}
+          </article>
+        ) : null}
+
+        {(!isClientReady || cycleEntriesStatus.status === "ready") ? (
+          <CycleSummaryCard entries={displayedCycleEntries} />
+        ) : null}
       </section>
 
       <section className="mt-6">
@@ -134,15 +166,44 @@ export default function Home() {
         </div>
 
         <div className="space-y-3">
-          {recentCycleEntries.length > 0 ? (
+          {isClientReady &&
+          (cycleEntriesStatus.status === "loading" ||
+            cycleEntriesStatus.status === "idle") ? (
+            <article
+              data-testid="recent-cycle-loading"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
+              Loading cycle entries...
+            </article>
+          ) : null}
+
+          {isClientReady && cycleEntriesStatus.status === "error" ? (
+            <article
+              data-testid="recent-cycle-error"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
+              {cycleEntriesStatus.errorMessage || "Unable to load cycle entries."}
+            </article>
+          ) : null}
+
+          {isClientReady &&
+          cycleEntriesStatus.status === "ready" &&
+          recentCycleEntries.length > 0 ? (
             recentCycleEntries.map((entry) => (
               <CycleEntryCard key={entry.id} entry={entry} />
             ))
-          ) : (
-            <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58">
+          ) : null}
+
+          {isClientReady &&
+          cycleEntriesStatus.status === "ready" &&
+          recentCycleEntries.length === 0 ? (
+            <article
+              data-testid="recent-cycle-empty"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
               No cycle entries yet.
             </article>
-          )}
+          ) : null}
         </div>
       </section>
 
@@ -158,15 +219,91 @@ export default function Home() {
         </div>
 
         <div className="space-y-3">
-          {recentIntimacyEntries.length > 0 ? (
+          {isClientReady &&
+          intimacyEntriesStatus.status === "ready" &&
+          intimacyEntriesStatus.canImportLegacyEntries ? (
+            <article
+              data-testid="recent-intimacy-import-card"
+              className="rounded-[1.5rem] border border-line bg-white/85 px-4 py-5 text-sm text-foreground/68 shadow-[0_10px_30px_rgba(34,27,40,0.05)]"
+            >
+              <p className="font-semibold text-foreground">Import existing intimacy logs</p>
+              <p className="mt-2 leading-6 text-foreground/62">
+                We found {intimacyEntriesStatus.legacyEntryCount} intimacy{" "}
+                {intimacyEntriesStatus.legacyEntryCount === 1 ? "entry" : "entries"} on
+                this device from the pre-auth version of Luna.
+              </p>
+              <div className="mt-4 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleImportLegacyIntimacyEntries}
+                  disabled={intimacyEntriesStatus.importStatus === "loading"}
+                  data-testid="import-legacy-intimacy-entries"
+                  className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {intimacyEntriesStatus.importStatus === "loading"
+                    ? "Importing..."
+                    : "Import existing entries"}
+                </button>
+              </div>
+
+              {intimacyEntriesStatus.importStatus === "error" ? (
+                <p
+                  className="mt-3 text-sm text-accent-strong"
+                  data-testid="legacy-intimacy-import-error"
+                >
+                  {intimacyEntriesStatus.importErrorMessage}
+                </p>
+              ) : null}
+            </article>
+          ) : null}
+
+          {isClientReady && intimacyEntriesStatus.importStatus === "success" ? (
+            <article
+              data-testid="legacy-intimacy-import-success"
+              className="rounded-[1.5rem] border border-line bg-white/75 px-4 py-4 text-sm text-foreground/62"
+            >
+              Existing intimacy entries were imported successfully.
+            </article>
+          ) : null}
+
+          {isClientReady &&
+          (intimacyEntriesStatus.status === "loading" ||
+            intimacyEntriesStatus.status === "idle") ? (
+            <article
+              data-testid="recent-intimacy-loading"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
+              Loading intimacy logs...
+            </article>
+          ) : null}
+
+          {isClientReady && intimacyEntriesStatus.status === "error" ? (
+            <article
+              data-testid="recent-intimacy-error"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
+              {intimacyEntriesStatus.errorMessage || "Unable to load intimacy logs."}
+            </article>
+          ) : null}
+
+          {isClientReady &&
+          intimacyEntriesStatus.status === "ready" &&
+          recentIntimacyEntries.length > 0 ? (
             recentIntimacyEntries.map((entry) => (
               <IntimacyLogCard key={entry.id} entry={entry} />
             ))
-          ) : (
-            <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58">
+          ) : null}
+
+          {isClientReady &&
+          intimacyEntriesStatus.status === "ready" &&
+          recentIntimacyEntries.length === 0 ? (
+            <article
+              data-testid="recent-intimacy-empty"
+              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+            >
               No intimacy logs yet.
             </article>
-          )}
+          ) : null}
         </div>
       </section>
 

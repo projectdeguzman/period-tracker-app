@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { CycleDayDetailCard } from "@/features/cycle/components/cycle-day-detail-card";
 import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
 import { formatShortDate } from "@/lib/format-date";
-import { useCycleEntries } from "@/lib/cycle-entry-store";
+import { useCycleEntries, useCycleEntriesStatus } from "@/lib/cycle-entry-store";
 import { useIntimacyEntries } from "@/lib/intimacy-store";
 
 const weekDayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -134,6 +134,7 @@ export function CalendarView() {
   const [selectedDate, setSelectedDate] = useState(toDateKey(today));
 
   const cycleEntries = useCycleEntries();
+  const cycleEntriesStatus = useCycleEntriesStatus();
   const intimacyEntries = useIntimacyEntries();
 
   const days = buildCalendarDays(visibleMonth);
@@ -365,15 +366,39 @@ export function CalendarView() {
             </div>
 
             <div className="space-y-3">
-              {selectedCycleEntries.length > 0 ? (
+              {cycleEntriesStatus.status === "loading" ||
+              cycleEntriesStatus.status === "idle" ? (
+                <article
+                  data-testid="calendar-cycle-entries-loading"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
+                  Loading cycle entries...
+                </article>
+              ) : null}
+
+              {cycleEntriesStatus.status === "error" ? (
+                <article
+                  data-testid="calendar-cycle-entries-error"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
+                  {cycleEntriesStatus.errorMessage || "Unable to load cycle entries."}
+                </article>
+              ) : null}
+
+              {cycleEntriesStatus.status === "ready" && selectedCycleEntries.length > 0 ? (
                 selectedCycleEntries.map((entry) => (
                   <CycleDayDetailCard key={entry.id} entry={entry} />
                 ))
-              ) : (
-                <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58">
+              ) : null}
+
+              {cycleEntriesStatus.status === "ready" && selectedCycleEntries.length === 0 ? (
+                <article
+                  data-testid="calendar-cycle-entries-empty"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
                   No cycle entries logged for this day.
                 </article>
-              )}
+              ) : null}
             </div>
           </div>
 
