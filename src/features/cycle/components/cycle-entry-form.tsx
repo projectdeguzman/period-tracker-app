@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useState,
   type ChangeEventHandler,
@@ -78,9 +78,29 @@ const initialValues: CycleFormValues = {
   notes: "",
 };
 
+function getInitialLogType(input: string | null): CycleLogType {
+  if (input === "Period started") {
+    return "Period started";
+  }
+
+  if (input === "Period ended") {
+    return "Period ended";
+  }
+
+  if (input === "Ovulation signs") {
+    return "Ovulation signs";
+  }
+
+  return "Symptoms";
+}
+
 export function CycleEntryForm() {
   const router = useRouter();
-  const [values, setValues] = useState<CycleFormValues>(initialValues);
+  const searchParams = useSearchParams();
+  const [values, setValues] = useState<CycleFormValues>(() => ({
+    ...initialValues,
+    logType: getInitialLogType(searchParams.get("logType")),
+  }));
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 

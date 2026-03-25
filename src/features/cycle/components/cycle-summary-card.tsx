@@ -37,7 +37,7 @@ export function CycleSummaryCard({ entries }: CycleSummaryCardProps) {
           </div>
 
           <Link
-            href="/logs/cycle/new"
+            href="/logs/cycle/new?logType=Period%20started"
             data-testid="today-log-period-start-cta"
             className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-black shadow-[0_12px_28px_rgba(34,27,40,0.14)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
           >
@@ -81,7 +81,15 @@ export function CycleSummaryCard({ entries }: CycleSummaryCardProps) {
           </div>
         </div>
 
-        <TodayCardCta href="/logs/cycle/new" label={ctaLabel} testId={ctaTestId} />
+        <TodayCardCta
+          href={
+            isCycleInProgress
+              ? "/logs/cycle/new?logType=Symptoms"
+              : "/logs/cycle/new?logType=Period%20ended"
+          }
+          label={ctaLabel}
+          testId={ctaTestId}
+        />
       </div>
     </article>
   );

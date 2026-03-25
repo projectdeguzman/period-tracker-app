@@ -128,7 +128,7 @@ export default function Home() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Link
-            href="/logs/cycle/new"
+            href="/logs/cycle/new?logType=Symptoms"
             className="rounded-[1.5rem] bg-accent px-5 py-5 text-left text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
           >
             <span className="block text-xl font-semibold leading-tight">
@@ -157,7 +157,7 @@ export default function Home() {
           <p className="text-base font-semibold">Recent cycle</p>
           {recentCycleEntries.length > 0 ? (
             <Link
-              href="/logs/cycle/new"
+              href="/logs/cycle/new?logType=Symptoms"
               className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium"
             >
               + New
