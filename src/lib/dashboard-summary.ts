@@ -13,7 +13,7 @@ type DashboardSummary = {
 };
 
 const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
-const MIN_PERIOD_STARTS_FOR_ESTIMATE = 2;
+const MIN_PERIOD_STARTS_FOR_ESTIMATE = 3;
 
 function getDayDifference(startDate: string, endDate: string) {
   return Math.round(
@@ -41,7 +41,7 @@ function formatNextPeriodEstimate(cycleEntries: CycleEntry[]) {
 
   if (periodStarts.length < MIN_PERIOD_STARTS_FOR_ESTIMATE) {
     return {
-      helperText: "* Add 2 cycles to unlock predictions",
+      helperText: "* Add 3 period starts to unlock predictions",
       value: "N/A",
     };
   }
