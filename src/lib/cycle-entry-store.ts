@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getCurrentSessionUser } from "@/features/auth/lib/auth-session";
 import type {
   CycleEntry,
   CycleLogType,
@@ -88,16 +89,7 @@ function toEntry(row: CycleEntryRow): CycleEntry {
 }
 
 async function getAuthenticatedUser() {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
-  return session?.user ?? null;
+  return getCurrentSessionUser();
 }
 
 async function loadEntries() {

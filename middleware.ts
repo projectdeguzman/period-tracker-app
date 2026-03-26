@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const publicRoutes = new Set(["/sign-in", "/sign-up"]);
+const onboardingRoute = "/onboarding";
 
 function isPublicRoute(pathname: string) {
   return publicRoutes.has(pathname);
@@ -43,6 +44,7 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isPublic = isPublicRoute(pathname);
+  const isOnboarding = pathname === onboardingRoute;
 
   if (!user && !isPublic) {
     const redirectUrl = request.nextUrl.clone();
@@ -50,9 +52,38 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, date_of_birth")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const isProfileComplete = Boolean(profile?.name?.trim() && profile?.date_of_birth);
+
+    if (!isProfileComplete && !isOnboarding) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = onboardingRoute;
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isProfileComplete && isOnboarding) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/";
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
   if (user && isPublic) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/";
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, date_of_birth")
+      .eq("id", user.id)
+      .maybeSingle();
+    const isProfileComplete = Boolean(profile?.name?.trim() && profile?.date_of_birth);
+
+    redirectUrl.pathname = isProfileComplete ? "/" : onboardingRoute;
     return NextResponse.redirect(redirectUrl);
   }
 

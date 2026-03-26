@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { getCurrentSessionUser } from "@/features/auth/lib/auth-session";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { IntimacyEntry, Mood } from "@/types/tracking";
 
@@ -147,16 +148,7 @@ function toEntry(row: IntimacyEntryRow): IntimacyEntry {
 }
 
 async function getAuthenticatedUser() {
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
-  return session?.user ?? null;
+  return getCurrentSessionUser();
 }
 
 async function loadEntries() {

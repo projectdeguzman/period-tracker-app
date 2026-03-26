@@ -2,10 +2,10 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { CycleDayDetailCard } from "@/features/cycle/components/cycle-day-detail-card";
-import { IntimacyLogCard } from "@/features/intimacy/components/intimacy-log-card";
+import { IntimacyDayDetailCard } from "@/features/intimacy/components/intimacy-day-detail-card";
 import { formatShortDate } from "@/lib/format-date";
 import { useCycleEntries, useCycleEntriesStatus } from "@/lib/cycle-entry-store";
-import { useIntimacyEntries } from "@/lib/intimacy-store";
+import { useIntimacyEntries, useIntimacyEntriesStatus } from "@/lib/intimacy-store";
 
 const weekDayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -136,6 +136,7 @@ export function CalendarView() {
   const cycleEntries = useCycleEntries();
   const cycleEntriesStatus = useCycleEntriesStatus();
   const intimacyEntries = useIntimacyEntries();
+  const intimacyEntriesStatus = useIntimacyEntriesStatus();
 
   const days = buildCalendarDays(visibleMonth);
   const intimacyDateKeys = new Set(intimacyEntries.map((entry) => entry.date));
@@ -411,15 +412,42 @@ export function CalendarView() {
             </div>
 
             <div className="space-y-3">
-              {selectedIntimacyEntries.length > 0 ? (
+              {intimacyEntriesStatus.status === "loading" ||
+              intimacyEntriesStatus.status === "idle" ? (
+                <article
+                  data-testid="calendar-intimacy-entries-loading"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
+                  Loading intimacy entries...
+                </article>
+              ) : null}
+
+              {intimacyEntriesStatus.status === "error" ? (
+                <article
+                  data-testid="calendar-intimacy-entries-error"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
+                  {intimacyEntriesStatus.errorMessage ||
+                    "Unable to load intimacy entries."}
+                </article>
+              ) : null}
+
+              {intimacyEntriesStatus.status === "ready" &&
+              selectedIntimacyEntries.length > 0 ? (
                 selectedIntimacyEntries.map((entry) => (
-                  <IntimacyLogCard key={entry.id} entry={entry} />
+                  <IntimacyDayDetailCard key={entry.id} entry={entry} />
                 ))
-              ) : (
-                <article className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58">
+              ) : null}
+
+              {intimacyEntriesStatus.status === "ready" &&
+              selectedIntimacyEntries.length === 0 ? (
+                <article
+                  data-testid="calendar-intimacy-entries-empty"
+                  className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                >
                   No intimacy entries logged for this day.
                 </article>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

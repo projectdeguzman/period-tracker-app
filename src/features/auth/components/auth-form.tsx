@@ -101,7 +101,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           return;
         }
 
-        router.replace("/");
+        router.replace("/onboarding");
         router.refresh();
         return;
       }
@@ -117,7 +117,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
 
       if (data.session) {
-        router.replace("/");
+        router.replace("/onboarding");
         router.refresh();
         return;
       }
