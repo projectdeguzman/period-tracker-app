@@ -8,6 +8,12 @@ import type { GutEffort, GutPoopType } from "@/types/tracking";
 const gutPoopTypeOptions: GutPoopType[] = ["smooth", "hard", "loose", "none"];
 const gutEffortOptions: GutEffort[] = ["easy", "normal", "struggled"];
 
+const gutEffortLabels: Record<GutEffort, string> = {
+  easy: "Easy 😌✨",
+  normal: "Normal 🙂👍",
+  struggled: "Struggled 🥵🪨",
+};
+
 type GutCheckFormValues = {
   logDate: string;
   poopType: GutPoopType | "";
@@ -159,7 +165,7 @@ export function GutCheckForm() {
                     : "border-line bg-white text-foreground hover:bg-surface-muted",
                 ].join(" ")}
               >
-                {option}
+                {gutEffortLabels[option]}
               </button>
             ))}
           </div>
