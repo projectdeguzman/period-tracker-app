@@ -10,7 +10,7 @@ const gutEffortOptions: GutEffort[] = ["easy", "normal", "struggled"];
 
 const gutEffortLabels: Record<GutEffort, string> = {
   easy: "Easy 😌✨",
-  normal: "Normal 🙂👍",
+  normal: "Normal 🙂",
   struggled: "Struggled 🥵🪨",
 };
 
