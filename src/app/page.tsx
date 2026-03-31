@@ -126,7 +126,7 @@ export default function Home() {
           Quick actions
         </p>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link
             href="/logs/cycle/new?logType=Symptoms"
             className="rounded-[1.5rem] bg-accent px-5 py-5 text-left text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
@@ -141,6 +141,13 @@ export default function Home() {
             className="rounded-[1.5rem] border border-line bg-white px-5 py-5 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
           >
             <span className="block text-xl font-semibold leading-tight">Log intimacy</span>
+          </Link>
+
+          <Link
+            href="/logs/cycle/new#gut-check"
+            className="rounded-[1.5rem] border border-line bg-white px-5 py-5 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
+          >
+            <span className="block text-xl font-semibold leading-tight">Gut Check</span>
           </Link>
 
           <Link

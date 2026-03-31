@@ -23,11 +23,6 @@ type NewCycleEntry = {
   sexDrive: SexDriveLevel | "";
   discharge: DischargeType | "";
   notes: string;
-  gutTracking?: {
-    poopType: GutPoopType;
-    effort: GutEffort | "";
-    notes: string;
-  };
 };
 
 type CycleEntryRow = {
@@ -276,30 +271,7 @@ export async function addCycleEntry(entry: NewCycleEntry) {
   }
 
   const cycleEntryRow = data as CycleEntryRow;
-  let nextGutTracking: GutTrackingEntry | null = null;
-
-  if (entry.gutTracking) {
-    const { data: gutData, error: gutError } = await supabase
-      .from("gut_tracking")
-      .insert({
-        user_id: user.id,
-        cycle_entry_id: cycleEntryRow.id,
-        log_date: entry.date,
-        poop_type: entry.gutTracking.poopType,
-        effort: entry.gutTracking.effort || null,
-        notes: entry.gutTracking.notes || null,
-      })
-      .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
-      .single();
-
-    if (gutError) {
-      console.error("Failed to save gut tracking entry:", gutError);
-    } else {
-      nextGutTracking = toGutTracking(gutData as GutTrackingRow);
-    }
-  }
-
-  const nextEntry = toEntry(cycleEntryRow, nextGutTracking);
+  const nextEntry = toEntry(cycleEntryRow, null);
 
   lastLoadedUserId = user.id;
   store = {
@@ -311,6 +283,63 @@ export async function addCycleEntry(entry: NewCycleEntry) {
   emitChange();
 
   return nextEntry;
+}
+
+type NewGutTrackingEntry = {
+  logDate: string;
+  poopType: GutPoopType | "";
+  effort: GutEffort | "";
+  notes: string;
+};
+
+export async function addGutTrackingEntry(entry: NewGutTrackingEntry) {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    throw new Error("You need to sign in to save gut checks.");
+  }
+
+  if (!entry.poopType) {
+    throw new Error("Choose a gut type to save your gut check.");
+  }
+
+  const matchingCycleEntry = store.entries.find((currentEntry) => {
+    return currentEntry.date === entry.logDate;
+  });
+
+  const { data, error } = await supabase
+    .from("gut_tracking")
+    .insert({
+      user_id: user.id,
+      cycle_entry_id: matchingCycleEntry?.id ?? null,
+      log_date: entry.logDate,
+      poop_type: entry.poopType,
+      effort: entry.effort || null,
+      notes: entry.notes || null,
+    })
+    .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+    .single();
+
+  if (error) {
+    console.error("Failed to save gut tracking entry:", error);
+    throw error;
+  }
+
+  const nextGutTracking = toGutTracking(data as GutTrackingRow);
+
+  if (matchingCycleEntry) {
+    store = {
+      ...store,
+      entries: store.entries.map((currentEntry) =>
+        currentEntry.id === matchingCycleEntry.id
+          ? { ...currentEntry, gutTracking: nextGutTracking }
+          : currentEntry,
+      ),
+    };
+    emitChange();
+  }
+
+  return nextGutTracking;
 }
 
 export function useCycleEntriesState() {

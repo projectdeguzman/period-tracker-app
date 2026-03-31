@@ -6,30 +6,31 @@
 
 ## Scenarios
 
-1. **Create cycle entry without gut tracking**
+1. **Dashboard access to gut form**
+   - Open `/`.
+   - Confirm **Quick actions** includes a `Gut Check` button.
+   - Click it and confirm navigation to `/logs/cycle/new#gut-check`.
+
+2. **Create cycle entry without gut tracking**
    - Open `/logs/cycle/new`.
-   - Leave **Gut check** as `Skip for today`.
-   - Save entry.
-   - Confirm save succeeds and no errors show.
-   - Confirm the new cycle entry renders normally in Home, Calendar, and details screens.
+   - Submit the `Log Period / Symptoms` card only.
+   - Confirm save succeeds and cycle entry renders normally in Home, Calendar, and details.
 
-2. **Create cycle entry with gut tracking**
-   - Open `/logs/cycle/new`.
-   - Select a gut type (for example `smooth`).
-   - Optionally choose effort and add notes.
-   - Save entry.
-   - Open that entry detail and confirm gut fields are displayed.
+3. **Create gut check independently**
+   - Open `/logs/cycle/new#gut-check`.
+   - In the standalone `Gut Check` card, choose a gut type.
+   - Optionally choose effort and notes.
+   - Submit and confirm `Gut check saved.` appears.
 
-3. **Read cycle entry when gut tracking exists**
-   - Open Calendar day view for the saved date.
-   - Confirm cycle day card shows the gut check summary.
-   - Open detail page and confirm poop type, effort, and gut notes render.
+4. **Read cycle entry when gut tracking exists**
+   - Create a cycle entry and gut check for the same date.
+   - Confirm cycle cards/details show gut summary fields.
 
-4. **Read cycle entry when gut tracking does not exist**
-   - Open an entry created without gut tracking.
+5. **Read cycle entry when gut tracking does not exist**
+   - Open a cycle entry created with no gut check.
    - Confirm detail page shows `No gut check logged.`
    - Confirm no crash and normal cycle data still renders.
 
-5. **Ownership / permissions expectations**
+6. **Ownership / permissions expectations**
    - Attempt to query another user's `gut_tracking` rows using a different authenticated user.
    - Confirm RLS blocks select/update/delete/insert operations that violate `auth.uid() = user_id`.

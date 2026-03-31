@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CycleEntryForm } from "@/features/cycle/components/cycle-entry-form";
+import { GutCheckForm } from "@/features/cycle/components/gut-check-form";
 
 export default function NewCycleLogPage() {
   return (
@@ -14,6 +15,7 @@ export default function NewCycleLogPage() {
       </div>
 
       <CycleEntryForm />
+      <GutCheckForm />
     </main>
   );
 }
