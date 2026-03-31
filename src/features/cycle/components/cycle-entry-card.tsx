@@ -34,6 +34,12 @@ export function CycleEntryCard({ entry }: CycleEntryCardProps) {
         </p>
       )}
 
+      {entry.gutTracking ? (
+        <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-foreground/55">
+          Gut check: {entry.gutTracking.poopType}
+        </p>
+      ) : null}
+
       <div
         data-testid={`cycle-entry-card-footer-${entry.id}`}
         className="mt-auto flex items-center justify-end border-t border-line/70 pt-4 text-sm"

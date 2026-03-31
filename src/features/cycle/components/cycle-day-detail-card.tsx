@@ -50,6 +50,20 @@ export function CycleDayDetailCard({ entry }: CycleDayDetailCardProps) {
             </p>
           </div>
         ) : null}
+
+        {entry.gutTracking ? (
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
+              Gut check
+            </p>
+            <p className="mt-1 text-sm leading-6 capitalize text-foreground/74">
+              {entry.gutTracking.poopType}
+              {entry.gutTracking.effort
+                ? ` • ${entry.gutTracking.effort}`
+                : " • effort not recorded"}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-4 flex items-center justify-end border-t border-line/70 pt-4 text-sm">

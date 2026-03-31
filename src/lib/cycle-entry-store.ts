@@ -7,6 +7,9 @@ import type {
   CycleEntry,
   CycleLogType,
   DischargeType,
+  GutEffort,
+  GutPoopType,
+  GutTrackingEntry,
   Mood,
   SexDriveLevel,
 } from "@/types/tracking";
@@ -20,6 +23,11 @@ type NewCycleEntry = {
   sexDrive: SexDriveLevel | "";
   discharge: DischargeType | "";
   notes: string;
+  gutTracking?: {
+    poopType: GutPoopType;
+    effort: GutEffort | "";
+    notes: string;
+  };
 };
 
 type CycleEntryRow = {
@@ -31,6 +39,15 @@ type CycleEntryRow = {
   cravings: string | null;
   sex_drive: SexDriveLevel | null;
   discharge: DischargeType | null;
+  notes: string | null;
+};
+
+type GutTrackingRow = {
+  id: string;
+  cycle_entry_id: string | null;
+  log_date: string;
+  poop_type: GutPoopType;
+  effort: GutEffort | null;
   notes: string | null;
 };
 
@@ -74,7 +91,17 @@ function getErrorMessage(error: unknown, fallbackMessage: string) {
   return fallbackMessage;
 }
 
-function toEntry(row: CycleEntryRow): CycleEntry {
+function toGutTracking(row: GutTrackingRow): GutTrackingEntry {
+  return {
+    id: row.id,
+    logDate: row.log_date,
+    poopType: row.poop_type,
+    effort: row.effort ?? "",
+    notes: row.notes ?? "",
+  };
+}
+
+function toEntry(row: CycleEntryRow, gutTracking: GutTrackingEntry | null): CycleEntry {
   return {
     id: row.id,
     date: row.date,
@@ -85,6 +112,7 @@ function toEntry(row: CycleEntryRow): CycleEntry {
     sexDrive: row.sex_drive ?? "",
     discharge: row.discharge ?? "",
     notes: row.notes ?? "",
+    gutTracking,
   };
 }
 
@@ -141,8 +169,34 @@ async function loadEntries() {
         throw error;
       }
 
+      const cycleRows = (data ?? []) as CycleEntryRow[];
+      const cycleEntryIds = cycleRows.map((row) => row.id);
+      const gutEntriesByCycleId = new Map<string, GutTrackingEntry>();
+
+      if (cycleEntryIds.length > 0) {
+        const { data: gutData, error: gutError } = await supabase
+          .from("gut_tracking")
+          .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+          .in("cycle_entry_id", cycleEntryIds)
+          .order("created_at", { ascending: false });
+
+        if (gutError) {
+          throw gutError;
+        }
+
+        for (const row of (gutData ?? []) as GutTrackingRow[]) {
+          if (!row.cycle_entry_id || gutEntriesByCycleId.has(row.cycle_entry_id)) {
+            continue;
+          }
+
+          gutEntriesByCycleId.set(row.cycle_entry_id, toGutTracking(row));
+        }
+      }
+
       store = {
-        entries: (data ?? []).map((row) => toEntry(row as CycleEntryRow)),
+        entries: cycleRows.map((row) =>
+          toEntry(row, gutEntriesByCycleId.get(row.id) ?? null),
+        ),
         errorMessage: "",
         status: "ready",
         userId: user.id,
@@ -221,7 +275,31 @@ export async function addCycleEntry(entry: NewCycleEntry) {
     throw error;
   }
 
-  const nextEntry = toEntry(data as CycleEntryRow);
+  const cycleEntryRow = data as CycleEntryRow;
+  let nextGutTracking: GutTrackingEntry | null = null;
+
+  if (entry.gutTracking) {
+    const { data: gutData, error: gutError } = await supabase
+      .from("gut_tracking")
+      .insert({
+        user_id: user.id,
+        cycle_entry_id: cycleEntryRow.id,
+        log_date: entry.date,
+        poop_type: entry.gutTracking.poopType,
+        effort: entry.gutTracking.effort || null,
+        notes: entry.gutTracking.notes || null,
+      })
+      .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+      .single();
+
+    if (gutError) {
+      console.error("Failed to save gut tracking entry:", gutError);
+    } else {
+      nextGutTracking = toGutTracking(gutData as GutTrackingRow);
+    }
+  }
+
+  const nextEntry = toEntry(cycleEntryRow, nextGutTracking);
 
   lastLoadedUserId = user.id;
   store = {

@@ -137,6 +137,25 @@ export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
                 {entry.notes || "No notes added."}
               </p>
             </div>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
+                Gut check
+              </p>
+              {entry.gutTracking ? (
+                <div className="mt-1 space-y-1 text-sm leading-6 text-foreground/78">
+                  <p className="capitalize">Type: {entry.gutTracking.poopType}</p>
+                  <p className="capitalize">
+                    Effort: {entry.gutTracking.effort || "Not recorded"}
+                  </p>
+                  <p>{entry.gutTracking.notes || "No gut notes added."}</p>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm leading-6 text-foreground/78">
+                  No gut check logged.
+                </p>
+              )}
+            </div>
           </div>
         </section>
       ) : null}

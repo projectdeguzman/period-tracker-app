@@ -11,6 +11,8 @@ import { addCycleEntry } from "@/lib/cycle-entry-store";
 import type {
   CycleLogType,
   DischargeType,
+  GutEffort,
+  GutPoopType,
   Mood,
   SexDriveLevel,
 } from "@/types/tracking";
@@ -55,6 +57,8 @@ const dischargeOptions: DischargeType[] = [
   "Watery",
   "Egg-white",
 ];
+const gutPoopTypeOptions: GutPoopType[] = ["smooth", "hard", "loose", "none"];
+const gutEffortOptions: GutEffort[] = ["easy", "normal", "struggled"];
 
 type CycleFormValues = {
   date: string;
@@ -65,6 +69,9 @@ type CycleFormValues = {
   sexDrive: SexDriveLevel | "";
   discharge: DischargeType | "";
   notes: string;
+  gutPoopType: GutPoopType | "";
+  gutEffort: GutEffort | "";
+  gutNotes: string;
 };
 
 const initialValues: CycleFormValues = {
@@ -76,6 +83,9 @@ const initialValues: CycleFormValues = {
   sexDrive: "",
   discharge: "",
   notes: "",
+  gutPoopType: "",
+  gutEffort: "",
+  gutNotes: "",
 };
 
 function getInitialLogType(input: string | null): CycleLogType {
@@ -127,7 +137,23 @@ export function CycleEntryForm() {
     setIsSubmitting(true);
 
     try {
-      await addCycleEntry(values);
+      await addCycleEntry({
+        cravings: values.cravings,
+        date: values.date,
+        discharge: values.discharge,
+        logType: values.logType,
+        mood: values.mood,
+        notes: values.notes,
+        sexDrive: values.sexDrive,
+        symptoms: values.symptoms,
+        gutTracking: values.gutPoopType
+          ? {
+              poopType: values.gutPoopType,
+              effort: values.gutEffort,
+              notes: values.gutNotes,
+            }
+          : undefined,
+      });
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Unable to save cycle entry.",
@@ -154,6 +180,12 @@ export function CycleEntryForm() {
     event,
   ) => {
     updateValue("notes", event.target.value);
+  };
+
+  const handleGutNotesChange: ChangeEventHandler<HTMLTextAreaElement> = (
+    event,
+  ) => {
+    updateValue("gutNotes", event.target.value);
   };
 
   return (
@@ -407,6 +439,121 @@ export function CycleEntryForm() {
             className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
           />
         </label>
+
+        <fieldset>
+          <legend className="mb-2 block text-sm font-semibold">
+            Gut check
+            <span className="ml-2 text-xs font-medium text-foreground/52">
+              Optional
+            </span>
+          </legend>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              name="gutPoopType"
+              aria-pressed={values.gutPoopType === ""}
+              onClick={() => {
+                updateValue("gutPoopType", "");
+                updateValue("gutEffort", "");
+                updateValue("gutNotes", "");
+              }}
+              data-testid="cycle-gut-poop-type-none"
+              className={[
+                "rounded-2xl border px-4 py-3 text-left text-sm font-medium transition",
+                values.gutPoopType === ""
+                  ? "border-accent bg-accent-soft text-accent-strong"
+                  : "border-line bg-white text-foreground hover:bg-surface-muted",
+              ].join(" ")}
+            >
+              Skip for today
+            </button>
+            {gutPoopTypeOptions.map((option) => (
+              <button
+                key={option}
+                type="button"
+                name="gutPoopType"
+                aria-pressed={values.gutPoopType === option}
+                onClick={() => updateValue("gutPoopType", option)}
+                data-testid={`cycle-gut-poop-type-${option}`}
+                className={[
+                  "rounded-2xl border px-4 py-3 text-left text-sm font-medium capitalize transition",
+                  values.gutPoopType === option
+                    ? "border-accent bg-accent text-white"
+                    : "border-line bg-white text-foreground hover:bg-surface-muted",
+                ].join(" ")}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        {values.gutPoopType ? (
+          <>
+            <fieldset>
+              <legend className="mb-2 block text-sm font-semibold">
+                Effort
+                <span className="ml-2 text-xs font-medium text-foreground/52">
+                  Optional
+                </span>
+              </legend>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  name="gutEffort"
+                  aria-pressed={values.gutEffort === ""}
+                  onClick={() => updateValue("gutEffort", "")}
+                  data-testid="cycle-gut-effort-none"
+                  className={[
+                    "rounded-2xl border px-3 py-3 text-sm font-medium transition",
+                    values.gutEffort === ""
+                      ? "border-accent bg-accent-soft text-accent-strong"
+                      : "border-line bg-white text-foreground hover:bg-surface-muted",
+                  ].join(" ")}
+                >
+                  None
+                </button>
+                {gutEffortOptions.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    name="gutEffort"
+                    aria-pressed={values.gutEffort === option}
+                    onClick={() => updateValue("gutEffort", option)}
+                    data-testid={`cycle-gut-effort-${option}`}
+                    className={[
+                      "rounded-2xl border px-3 py-3 text-sm font-medium capitalize transition",
+                      values.gutEffort === option
+                        ? "border-accent bg-accent text-white"
+                        : "border-line bg-white text-foreground hover:bg-surface-muted",
+                    ].join(" ")}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
+            <label className="block" htmlFor="cycle-gut-notes">
+              <span className="mb-2 block text-sm font-semibold">
+                Gut notes
+                <span className="ml-2 text-xs font-medium text-foreground/52">
+                  Optional
+                </span>
+              </span>
+              <textarea
+                id="cycle-gut-notes"
+                name="gutNotes"
+                value={values.gutNotes}
+                onChange={handleGutNotesChange}
+                rows={3}
+                placeholder="Quick gut check notes for today."
+                data-testid="cycle-gut-notes-input"
+                className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
+              />
+            </label>
+          </>
+        ) : null}
       </div>
 
       {errorMessage ? (
