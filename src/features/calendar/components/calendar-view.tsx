@@ -140,6 +140,11 @@ export function CalendarView() {
 
   const days = buildCalendarDays(visibleMonth);
   const intimacyDateKeys = new Set(intimacyEntries.map((entry) => entry.date));
+  const gutDateKeys = new Set(
+    cycleEntries
+      .filter((entry) => Boolean(entry.gutTracking))
+      .map((entry) => entry.date),
+  );
   const periodRangeKeys = buildPeriodRangeKeys(cycleEntries);
 
   const selectedCycleEntries = cycleEntries.filter(
@@ -263,6 +268,7 @@ export function CalendarView() {
             const cycleVariant = getCycleCellVariant(dayCycleTypes);
             const hasCycleEntries = cycleVariant !== "none";
             const hasIntimacyEntries = intimacyDateKeys.has(day.key);
+            const hasGutEntries = gutDateKeys.has(day.key);
             const isSelected = day.key === selectedDate;
             const isInPeriodRange = periodRangeKeys.has(day.key);
             const continuesFromPrevious = periodRangeKeys.has(addDays(day.key, -1));
@@ -317,25 +323,37 @@ export function CalendarView() {
 
                   <div className="min-h-3" />
                   <div className="pointer-events-none absolute inset-x-0 bottom-1.5 flex justify-center">
-                    {hasIntimacyEntries ? (
-                      <span
-                        aria-label="Intimacy entry logged"
-                        className="inline-flex h-2.5 w-2.5 items-center justify-center"
-                      >
-                        <svg
-                          viewBox="0 0 12 12"
-                          className={[
-                            "h-2.5 w-2.5",
-                            isSelected ? "text-white/95" : "text-[#c97a8e]",
-                          ].join(" ")}
-                          fill="currentColor"
-                          aria-hidden="true"
-                          focusable="false"
+                    <div className="inline-flex items-center gap-1">
+                      {hasIntimacyEntries ? (
+                        <span
+                          aria-label="Intimacy entry logged"
+                          className="inline-flex h-2.5 w-2.5 items-center justify-center"
                         >
-                          <path d="M6 10.4 5.2 9.7C2.4 7.2 1 5.9 1 4.2 1 2.9 2 2 3.2 2c.7 0 1.5.3 2 .9.5-.6 1.3-.9 2-.9C8.4 2 9.4 2.9 9.4 4.2c0 1.7-1.4 3-4.2 5.5L6 10.4Z" />
-                        </svg>
-                      </span>
-                    ) : null}
+                          <svg
+                            viewBox="0 0 12 12"
+                            className={[
+                              "h-2.5 w-2.5",
+                              isSelected ? "text-white/95" : "text-[#c97a8e]",
+                            ].join(" ")}
+                            fill="currentColor"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path d="M6 10.4 5.2 9.7C2.4 7.2 1 5.9 1 4.2 1 2.9 2 2 3.2 2c.7 0 1.5.3 2 .9.5-.6 1.3-.9 2-.9C8.4 2 9.4 2.9 9.4 4.2c0 1.7-1.4 3-4.2 5.5L6 10.4Z" />
+                          </svg>
+                        </span>
+                      ) : null}
+                      {hasGutEntries ? (
+                        <span
+                          aria-label="Gut check logged"
+                          data-testid={`calendar-gut-indicator-${day.key}`}
+                          className={[
+                            "inline-flex h-2 w-2 rounded-full",
+                            isSelected ? "bg-white/95" : "bg-[#8b6b4a]",
+                          ].join(" ")}
+                        />
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </button>

@@ -34,3 +34,16 @@
 6. **Ownership / permissions expectations**
    - Attempt to query another user's `gut_tracking` rows using a different authenticated user.
    - Confirm RLS blocks select/update/delete/insert operations that violate `auth.uid() = user_id`.
+
+7. **Calendar day shows gut indicator**
+   - Create a gut check for a day with no intimacy entry.
+   - Open `/calendar` and confirm that day shows a small brown dot indicator.
+   - Confirm a day with no gut check does not show the brown dot.
+
+8. **Calendar day with intimacy + gut shows both indicators**
+   - Create an intimacy entry and a gut check on the same date.
+   - Open `/calendar` and confirm both indicators render on the same day cell (heart + brown dot) without overlap.
+
+9. **Calendar month navigation remains stable**
+   - Navigate between previous/next months in `/calendar`.
+   - Confirm calendar renders correctly and does not crash when months have no gut logs.
