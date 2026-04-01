@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   useState,
   type ChangeEventHandler,
   type SubmitEventHandler,
 } from "react";
 import { addIntimacyEntry } from "@/lib/intimacy-store";
+import { FieldLabel } from "@/features/shared/components/field-label";
 import type { Mood } from "@/types/tracking";
 
 const moodOptions: Mood[] = [
@@ -38,9 +39,14 @@ const initialValues: IntimacyFormValues = {
 
 export function IntimacyEntryForm() {
   const router = useRouter();
-  const [values, setValues] = useState<IntimacyFormValues>(initialValues);
+  const searchParams = useSearchParams();
+  const [values, setValues] = useState<IntimacyFormValues>(() => ({
+    ...initialValues,
+    date: searchParams.get("date") || initialValues.date,
+  }));
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nextPath = searchParams.get("source") === "calendar" ? "/calendar" : "/";
 
   function updateValue<K extends keyof IntimacyFormValues>(
     key: K,
@@ -64,7 +70,7 @@ export function IntimacyEntryForm() {
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   };
 
@@ -98,11 +104,12 @@ export function IntimacyEntryForm() {
 
       <div className="mt-6 space-y-4">
         <label className="block" htmlFor="intimacy-date">
-          <span className="mb-2 block text-sm font-semibold">Date</span>
+          <FieldLabel required>Date</FieldLabel>
           <input
             id="intimacy-date"
             name="date"
             type="date"
+            required
             value={values.date}
             onChange={handleDateChange}
             data-testid="intimacy-date-input"
@@ -111,8 +118,8 @@ export function IntimacyEntryForm() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Entry type
+          <legend>
+            <FieldLabel required>Entry type</FieldLabel>
           </legend>
           <div className="grid grid-cols-2 gap-3">
             {(["Partner", "Self"] as const).map((option) => (
@@ -137,8 +144,8 @@ export function IntimacyEntryForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Protection used
+          <legend>
+            <FieldLabel required>Protection used</FieldLabel>
           </legend>
           <div className="grid grid-cols-2 gap-3">
             {(["Yes", "No"] as const).map((option) => (
@@ -163,7 +170,7 @@ export function IntimacyEntryForm() {
         </fieldset>
 
         <label className="block" htmlFor="intimacy-notes">
-          <span className="mb-2 block text-sm font-semibold">Notes</span>
+          <FieldLabel optional>Notes</FieldLabel>
           <textarea
             id="intimacy-notes"
             name="notes"
@@ -177,7 +184,9 @@ export function IntimacyEntryForm() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">Mood tag</legend>
+          <legend>
+            <FieldLabel required>Mood tag</FieldLabel>
+          </legend>
           <div className="flex flex-wrap gap-2">
             {moodOptions.map((option) => (
               <button
@@ -220,7 +229,7 @@ export function IntimacyEntryForm() {
           {isSubmitting ? "Saving..." : "Save entry"}
         </button>
         <Link
-          href="/"
+          href={nextPath}
           data-testid="cancel-intimacy-entry"
           className="rounded-full border border-line bg-white px-5 py-3 text-sm font-semibold transition hover:bg-surface-muted"
         >

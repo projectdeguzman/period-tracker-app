@@ -1,12 +1,17 @@
 import Link from "next/link";
+import { GutStreakIndicator } from "@/features/cycle/components/gut-streak-indicator";
 import { formatShortDate } from "@/lib/format-date";
 import type { CycleEntry } from "@/types/tracking";
 
 type CycleEntryCardProps = {
   entry: CycleEntry;
+  hideGutDetails?: boolean;
 };
 
-export function CycleEntryCard({ entry }: CycleEntryCardProps) {
+export function CycleEntryCard({
+  entry,
+  hideGutDetails = false,
+}: CycleEntryCardProps) {
   return (
     <article
       data-testid={`cycle-entry-card-${entry.id}`}
@@ -34,10 +39,23 @@ export function CycleEntryCard({ entry }: CycleEntryCardProps) {
         </p>
       )}
 
+      {entry.gutTracking && !hideGutDetails ? (
+        <div className="mt-2">
+          <p className="text-xs font-medium uppercase tracking-[0.14em] text-foreground/55">
+            Gut check: {entry.gutTracking.poopType}
+          </p>
+        </div>
+      ) : null}
+
       <div
         data-testid={`cycle-entry-card-footer-${entry.id}`}
-        className="mt-auto flex items-center justify-end border-t border-line/70 pt-4 text-sm"
+        className="mt-auto flex items-center justify-between gap-3 border-t border-line/70 pt-4 text-sm"
       >
+        <div className="min-h-4">
+          {entry.gutTracking && !hideGutDetails ? (
+            <GutStreakIndicator date={entry.gutTracking.logDate} />
+          ) : null}
+        </div>
         <Link
           href={`/logs/cycle/${entry.id}`}
           data-testid={`view-cycle-details-${entry.id}`}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEventHandler, type FormEventHandler } from "react";
+import { FieldLabel } from "@/features/shared/components/field-label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -148,12 +149,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           data-testid={`auth-${mode}-form`}
         >
           <label className="block" htmlFor={`${mode}-email`}>
-            <span className="mb-2 block text-sm font-semibold">Email</span>
+            <FieldLabel required>Email</FieldLabel>
             <input
               id={`${mode}-email`}
               name="email"
               type="email"
               autoComplete="email"
+              required
               value={values.email}
               onChange={handleEmailChange}
               className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
@@ -162,12 +164,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           </label>
 
           <label className="block" htmlFor={`${mode}-password`}>
-            <span className="mb-2 block text-sm font-semibold">Password</span>
+            <FieldLabel required>Password</FieldLabel>
             <input
               id={`${mode}-password`}
               name="password"
               type="password"
               autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              required
               value={values.password}
               onChange={handlePasswordChange}
               className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"

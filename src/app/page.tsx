@@ -14,6 +14,10 @@ import {
   useIntimacyEntries,
   useIntimacyEntriesStatus,
 } from "@/lib/intimacy-store";
+import {
+  useHideGutCheckDetails,
+  useHideIntimacyDetails,
+} from "@/lib/profile-preferences-store";
 
 function subscribeToClientReady() {
   return () => {};
@@ -35,6 +39,8 @@ export default function Home() {
   );
   const cycleEntries = useCycleEntries();
   const cycleEntriesStatus = useCycleEntriesStatus();
+  const hideGutCheckDetails = useHideGutCheckDetails();
+  const hideIntimacyDetails = useHideIntimacyDetails();
   const intimacyEntries = useIntimacyEntries();
   const intimacyEntriesStatus = useIntimacyEntriesStatus();
   const displayedCycleEntries =
@@ -126,7 +132,7 @@ export default function Home() {
           Quick actions
         </p>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link
             href="/logs/cycle/new?logType=Symptoms"
             className="rounded-[1.5rem] bg-accent px-5 py-5 text-left text-white shadow-[0_12px_28px_rgba(169,52,86,0.22)] transition hover:bg-accent-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
@@ -141,6 +147,13 @@ export default function Home() {
             className="rounded-[1.5rem] border border-line bg-white px-5 py-5 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
           >
             <span className="block text-xl font-semibold leading-tight">Log intimacy</span>
+          </Link>
+
+          <Link
+            href="/logs/cycle/new#gut-check"
+            className="rounded-[1.5rem] border border-line bg-white px-5 py-5 text-left shadow-[0_10px_30px_rgba(34,27,40,0.05)] transition hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-strong focus-visible:ring-offset-2"
+          >
+            <span className="block text-xl font-semibold leading-tight">Gut Check</span>
           </Link>
 
           <Link
@@ -190,7 +203,11 @@ export default function Home() {
           cycleEntriesStatus.status === "ready" &&
           recentCycleEntries.length > 0 ? (
             recentCycleEntries.map((entry) => (
-              <CycleEntryCard key={entry.id} entry={entry} />
+              <CycleEntryCard
+                key={entry.id}
+                entry={entry}
+                hideGutDetails={hideGutCheckDetails}
+              />
             ))
           ) : null}
 
@@ -207,105 +224,111 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mt-6">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-base font-semibold">Recent intimacy</p>
-          <Link
-            href="/logs/intimacy/new"
-            className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium"
-          >
-            + New
-          </Link>
-        </div>
-
-        <div className="space-y-3">
-          {isClientReady &&
-          intimacyEntriesStatus.status === "ready" &&
-          intimacyEntriesStatus.canImportLegacyEntries ? (
-            <article
-              data-testid="recent-intimacy-import-card"
-              className="rounded-[1.5rem] border border-line bg-white/85 px-4 py-5 text-sm text-foreground/68 shadow-[0_10px_30px_rgba(34,27,40,0.05)]"
+      {!hideIntimacyDetails ? (
+        <section className="mt-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-base font-semibold">Recent intimacy</p>
+            <Link
+              href="/logs/intimacy/new"
+              className="rounded-full border border-line bg-white px-3 py-2 text-sm font-medium"
             >
-              <p className="font-semibold text-foreground">Import existing intimacy logs</p>
-              <p className="mt-2 leading-6 text-foreground/62">
-                We found {intimacyEntriesStatus.legacyEntryCount} intimacy{" "}
-                {intimacyEntriesStatus.legacyEntryCount === 1 ? "entry" : "entries"} on
-                this device from the pre-auth version of Luna.
-              </p>
-              <div className="mt-4 flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleImportLegacyIntimacyEntries}
-                  disabled={intimacyEntriesStatus.importStatus === "loading"}
-                  data-testid="import-legacy-intimacy-entries"
-                  className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {intimacyEntriesStatus.importStatus === "loading"
-                    ? "Importing..."
-                    : "Import existing entries"}
-                </button>
-              </div>
+              + New
+            </Link>
+          </div>
 
-              {intimacyEntriesStatus.importStatus === "error" ? (
-                <p
-                  className="mt-3 text-sm text-accent-strong"
-                  data-testid="legacy-intimacy-import-error"
-                >
-                  {intimacyEntriesStatus.importErrorMessage}
+          <div className="space-y-3">
+            {isClientReady &&
+            intimacyEntriesStatus.status === "ready" &&
+            intimacyEntriesStatus.canImportLegacyEntries ? (
+              <article
+                data-testid="recent-intimacy-import-card"
+                className="rounded-[1.5rem] border border-line bg-white/85 px-4 py-5 text-sm text-foreground/68 shadow-[0_10px_30px_rgba(34,27,40,0.05)]"
+              >
+                <p className="font-semibold text-foreground">Import existing intimacy logs</p>
+                <p className="mt-2 leading-6 text-foreground/62">
+                  We found {intimacyEntriesStatus.legacyEntryCount} intimacy{" "}
+                  {intimacyEntriesStatus.legacyEntryCount === 1 ? "entry" : "entries"} on
+                  this device from the pre-auth version of Luna.
                 </p>
-              ) : null}
-            </article>
-          ) : null}
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleImportLegacyIntimacyEntries}
+                    disabled={intimacyEntriesStatus.importStatus === "loading"}
+                    data-testid="import-legacy-intimacy-entries"
+                    className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {intimacyEntriesStatus.importStatus === "loading"
+                      ? "Importing..."
+                      : "Import existing entries"}
+                  </button>
+                </div>
 
-          {isClientReady && intimacyEntriesStatus.importStatus === "success" ? (
-            <article
-              data-testid="legacy-intimacy-import-success"
-              className="rounded-[1.5rem] border border-line bg-white/75 px-4 py-4 text-sm text-foreground/62"
-            >
-              Existing intimacy entries were imported successfully.
-            </article>
-          ) : null}
+                {intimacyEntriesStatus.importStatus === "error" ? (
+                  <p
+                    className="mt-3 text-sm text-accent-strong"
+                    data-testid="legacy-intimacy-import-error"
+                  >
+                    {intimacyEntriesStatus.importErrorMessage}
+                  </p>
+                ) : null}
+              </article>
+            ) : null}
 
-          {isClientReady &&
-          (intimacyEntriesStatus.status === "loading" ||
-            intimacyEntriesStatus.status === "idle") ? (
-            <article
-              data-testid="recent-intimacy-loading"
-              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
-            >
-              Loading intimacy logs...
-            </article>
-          ) : null}
+            {isClientReady && intimacyEntriesStatus.importStatus === "success" ? (
+              <article
+                data-testid="legacy-intimacy-import-success"
+                className="rounded-[1.5rem] border border-line bg-white/75 px-4 py-4 text-sm text-foreground/62"
+              >
+                Existing intimacy entries were imported successfully.
+              </article>
+            ) : null}
 
-          {isClientReady && intimacyEntriesStatus.status === "error" ? (
-            <article
-              data-testid="recent-intimacy-error"
-              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
-            >
-              {intimacyEntriesStatus.errorMessage || "Unable to load intimacy logs."}
-            </article>
-          ) : null}
+            {isClientReady &&
+            (intimacyEntriesStatus.status === "loading" ||
+              intimacyEntriesStatus.status === "idle") ? (
+              <article
+                data-testid="recent-intimacy-loading"
+                className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+              >
+                Loading intimacy logs...
+              </article>
+            ) : null}
 
-          {isClientReady &&
-          intimacyEntriesStatus.status === "ready" &&
-          recentIntimacyEntries.length > 0 ? (
-            recentIntimacyEntries.map((entry) => (
-              <IntimacyLogCard key={entry.id} entry={entry} />
-            ))
-          ) : null}
+            {isClientReady && intimacyEntriesStatus.status === "error" ? (
+              <article
+                data-testid="recent-intimacy-error"
+                className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+              >
+                {intimacyEntriesStatus.errorMessage || "Unable to load intimacy logs."}
+              </article>
+            ) : null}
 
-          {isClientReady &&
-          intimacyEntriesStatus.status === "ready" &&
-          recentIntimacyEntries.length === 0 ? (
-            <article
-              data-testid="recent-intimacy-empty"
-              className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
-            >
-              No intimacy logs yet.
-            </article>
-          ) : null}
-        </div>
-      </section>
+            {isClientReady &&
+            intimacyEntriesStatus.status === "ready" &&
+            recentIntimacyEntries.length > 0 ? (
+              recentIntimacyEntries.map((entry) => (
+                <IntimacyLogCard
+                  key={entry.id}
+                  entry={entry}
+                  hideIntimacyDetails={hideIntimacyDetails}
+                />
+              ))
+            ) : null}
+
+            {isClientReady &&
+            intimacyEntriesStatus.status === "ready" &&
+            recentIntimacyEntries.length === 0 ? (
+              <article
+                data-testid="recent-intimacy-empty"
+                className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm text-foreground/58"
+              >
+                No intimacy logs yet.
+              </article>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <BottomNav />
     </main>

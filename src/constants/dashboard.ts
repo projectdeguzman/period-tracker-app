@@ -50,5 +50,6 @@ export const cycleEntries: CycleEntry[] = [
     sexDrive: "Low",
     discharge: "None",
     notes: "Energy dipped during the first two days.",
+    gutTracking: null,
   },
 ];

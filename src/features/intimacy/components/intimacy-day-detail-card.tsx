@@ -4,9 +4,13 @@ import type { IntimacyEntry } from "@/types/tracking";
 
 type IntimacyDayDetailCardProps = {
   entry: IntimacyEntry;
+  hideIntimacyDetails?: boolean;
 };
 
-export function IntimacyDayDetailCard({ entry }: IntimacyDayDetailCardProps) {
+export function IntimacyDayDetailCard({
+  entry,
+  hideIntimacyDetails = false,
+}: IntimacyDayDetailCardProps) {
   return (
     <article
       data-testid={`calendar-intimacy-day-card-${entry.id}`}
@@ -25,23 +29,31 @@ export function IntimacyDayDetailCard({ entry }: IntimacyDayDetailCardProps) {
       </div>
 
       <div className="mt-4 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-strong">
-            {entry.mood}
-          </span>
-          <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-foreground/68">
-            {entry.protectionUsed ? "Protection used" : "No protection logged"}
-          </span>
-        </div>
+        {hideIntimacyDetails ? (
+          <p className="text-sm leading-6 text-foreground/52">
+            Intimacy details hidden.
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent-strong">
+                {entry.mood}
+              </span>
+              <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-foreground/68">
+                {entry.protectionUsed ? "Protection used" : "No protection logged"}
+              </span>
+            </div>
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
-            Notes
-          </p>
-          <p className="mt-1 line-clamp-2 text-sm leading-6 text-foreground/74">
-            {entry.note || "No notes added."}
-          </p>
-        </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
+                Notes
+              </p>
+              <p className="mt-1 line-clamp-2 text-sm leading-6 text-foreground/74">
+                {entry.note || "No notes added."}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-end border-t border-line/70 pt-4 text-sm">

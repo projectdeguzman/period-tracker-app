@@ -1,11 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { CycleDayDetailCard } from "@/features/cycle/components/cycle-day-detail-card";
+import { GutDayDetailCard } from "@/features/cycle/components/gut-day-detail-card";
 import { IntimacyDayDetailCard } from "@/features/intimacy/components/intimacy-day-detail-card";
 import { formatShortDate } from "@/lib/format-date";
-import { useCycleEntries, useCycleEntriesStatus } from "@/lib/cycle-entry-store";
+import {
+  useCycleEntries,
+  useCycleEntriesStatus,
+  useGutTrackingEntries,
+} from "@/lib/cycle-entry-store";
 import { useIntimacyEntries, useIntimacyEntriesStatus } from "@/lib/intimacy-store";
+import {
+  useHideGutCheckDetails,
+  useHideIntimacyDetails,
+} from "@/lib/profile-preferences-store";
 
 const weekDayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -135,11 +145,15 @@ export function CalendarView() {
 
   const cycleEntries = useCycleEntries();
   const cycleEntriesStatus = useCycleEntriesStatus();
+  const gutEntries = useGutTrackingEntries();
+  const hideGutCheckDetails = useHideGutCheckDetails();
+  const hideIntimacyDetails = useHideIntimacyDetails();
   const intimacyEntries = useIntimacyEntries();
   const intimacyEntriesStatus = useIntimacyEntriesStatus();
 
   const days = buildCalendarDays(visibleMonth);
   const intimacyDateKeys = new Set(intimacyEntries.map((entry) => entry.date));
+  const gutDateKeys = new Set(gutEntries.map((entry) => entry.logDate));
   const periodRangeKeys = buildPeriodRangeKeys(cycleEntries);
 
   const selectedCycleEntries = cycleEntries.filter(
@@ -148,6 +162,7 @@ export function CalendarView() {
   const selectedIntimacyEntries = intimacyEntries.filter(
     (entry) => entry.date === selectedDate,
   );
+  const selectedGutEntries = gutEntries.filter((entry) => entry.logDate === selectedDate);
 
   function goToPreviousMonth() {
     setVisibleMonth(
@@ -263,6 +278,7 @@ export function CalendarView() {
             const cycleVariant = getCycleCellVariant(dayCycleTypes);
             const hasCycleEntries = cycleVariant !== "none";
             const hasIntimacyEntries = intimacyDateKeys.has(day.key);
+            const hasGutEntries = gutDateKeys.has(day.key);
             const isSelected = day.key === selectedDate;
             const isInPeriodRange = periodRangeKeys.has(day.key);
             const continuesFromPrevious = periodRangeKeys.has(addDays(day.key, -1));
@@ -317,25 +333,37 @@ export function CalendarView() {
 
                   <div className="min-h-3" />
                   <div className="pointer-events-none absolute inset-x-0 bottom-1.5 flex justify-center">
-                    {hasIntimacyEntries ? (
-                      <span
-                        aria-label="Intimacy entry logged"
-                        className="inline-flex h-2.5 w-2.5 items-center justify-center"
-                      >
-                        <svg
-                          viewBox="0 0 12 12"
-                          className={[
-                            "h-2.5 w-2.5",
-                            isSelected ? "text-white/95" : "text-[#c97a8e]",
-                          ].join(" ")}
-                          fill="currentColor"
-                          aria-hidden="true"
-                          focusable="false"
+                    <div className="inline-flex items-center gap-1">
+                      {hasIntimacyEntries ? (
+                        <span
+                          aria-label="Intimacy entry logged"
+                          className="inline-flex h-2.5 w-2.5 items-center justify-center"
                         >
-                          <path d="M6 10.4 5.2 9.7C2.4 7.2 1 5.9 1 4.2 1 2.9 2 2 3.2 2c.7 0 1.5.3 2 .9.5-.6 1.3-.9 2-.9C8.4 2 9.4 2.9 9.4 4.2c0 1.7-1.4 3-4.2 5.5L6 10.4Z" />
-                        </svg>
-                      </span>
-                    ) : null}
+                          <svg
+                            viewBox="0 0 12 12"
+                            className={[
+                              "h-2.5 w-2.5",
+                              isSelected ? "text-white/95" : "text-[#c97a8e]",
+                            ].join(" ")}
+                            fill="currentColor"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path d="M6 10.4 5.2 9.7C2.4 7.2 1 5.9 1 4.2 1 2.9 2 2 3.2 2c.7 0 1.5.3 2 .9.5-.6 1.3-.9 2-.9C8.4 2 9.4 2.9 9.4 4.2c0 1.7-1.4 3-4.2 5.5L6 10.4Z" />
+                          </svg>
+                        </span>
+                      ) : null}
+                      {hasGutEntries ? (
+                        <span
+                          aria-label="Gut check logged"
+                          data-testid={`calendar-gut-indicator-${day.key}`}
+                          className={[
+                            "inline-flex h-2 w-2 rounded-full",
+                            isSelected ? "bg-white/95" : "bg-[#6FB7A7]",
+                          ].join(" ")}
+                        />
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </button>
@@ -355,6 +383,29 @@ export function CalendarView() {
           <p className="mt-2 text-sm leading-6 text-foreground/62">
             A closer look at everything logged for this date.
           </p>
+          <div className="mt-4 grid grid-cols-2 gap-2 min-[440px]:grid-cols-3">
+            <Link
+              href={`/logs/cycle/new?source=calendar&date=${selectedDate}`}
+              data-testid="calendar-log-cycle-entry"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(169,52,86,0.18)] transition hover:bg-accent-strong"
+            >
+              Log cycle
+            </Link>
+            <Link
+              href={`/logs/intimacy/new?source=calendar&date=${selectedDate}`}
+              data-testid="calendar-log-intimacy-entry"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold transition hover:bg-surface-muted"
+            >
+              Log intimacy
+            </Link>
+            <Link
+              href={`/logs/cycle/new?source=calendar&date=${selectedDate}#gut-check`}
+              data-testid="calendar-log-gut-check"
+              className="col-span-2 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold transition hover:bg-surface-muted min-[440px]:col-span-1"
+            >
+              Log gut check
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-5">
@@ -388,7 +439,11 @@ export function CalendarView() {
 
               {cycleEntriesStatus.status === "ready" && selectedCycleEntries.length > 0 ? (
                 selectedCycleEntries.map((entry) => (
-                  <CycleDayDetailCard key={entry.id} entry={entry} />
+                  <CycleDayDetailCard
+                    key={entry.id}
+                    entry={entry}
+                    hideGutDetails={hideGutCheckDetails}
+                  />
                 ))
               ) : null}
 
@@ -403,53 +458,106 @@ export function CalendarView() {
             </div>
           </div>
 
+          {!hideIntimacyDetails ? (
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold">Intimacy entries</p>
+                <span className="text-sm text-foreground/54">
+                  {selectedIntimacyEntries.length}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {intimacyEntriesStatus.status === "loading" ||
+                intimacyEntriesStatus.status === "idle" ? (
+                  <article
+                    data-testid="calendar-intimacy-entries-loading"
+                    className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                  >
+                    Loading intimacy entries...
+                  </article>
+                ) : null}
+
+                {intimacyEntriesStatus.status === "error" ? (
+                  <article
+                    data-testid="calendar-intimacy-entries-error"
+                    className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                  >
+                    {intimacyEntriesStatus.errorMessage ||
+                      "Unable to load intimacy entries."}
+                  </article>
+                ) : null}
+
+                {intimacyEntriesStatus.status === "ready" &&
+                selectedIntimacyEntries.length > 0 ? (
+                  selectedIntimacyEntries.map((entry) => (
+                    <IntimacyDayDetailCard
+                      key={entry.id}
+                      entry={entry}
+                      hideIntimacyDetails={hideIntimacyDetails}
+                    />
+                  ))
+                ) : null}
+
+                {intimacyEntriesStatus.status === "ready" &&
+                selectedIntimacyEntries.length === 0 ? (
+                  <article
+                    data-testid="calendar-intimacy-entries-empty"
+                    className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
+                  >
+                    No intimacy entries logged for this day.
+                  </article>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {!hideGutCheckDetails ? (
           <div>
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold">Intimacy entries</p>
+              <p className="text-sm font-semibold">Gut checks</p>
               <span className="text-sm text-foreground/54">
-                {selectedIntimacyEntries.length}
+                {selectedGutEntries.length}
               </span>
             </div>
 
             <div className="space-y-3">
-              {intimacyEntriesStatus.status === "loading" ||
-              intimacyEntriesStatus.status === "idle" ? (
+              {cycleEntriesStatus.status === "loading" ||
+              cycleEntriesStatus.status === "idle" ? (
                 <article
-                  data-testid="calendar-intimacy-entries-loading"
+                  data-testid="calendar-gut-entries-loading"
                   className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
                 >
-                  Loading intimacy entries...
+                  Loading gut checks...
                 </article>
               ) : null}
 
-              {intimacyEntriesStatus.status === "error" ? (
+              {cycleEntriesStatus.status === "error" ? (
                 <article
-                  data-testid="calendar-intimacy-entries-error"
+                  data-testid="calendar-gut-entries-error"
                   className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
                 >
-                  {intimacyEntriesStatus.errorMessage ||
-                    "Unable to load intimacy entries."}
+                  {cycleEntriesStatus.errorMessage || "Unable to load gut checks."}
                 </article>
               ) : null}
 
-              {intimacyEntriesStatus.status === "ready" &&
-              selectedIntimacyEntries.length > 0 ? (
-                selectedIntimacyEntries.map((entry) => (
-                  <IntimacyDayDetailCard key={entry.id} entry={entry} />
+              {cycleEntriesStatus.status === "ready" && selectedGutEntries.length > 0 ? (
+                selectedGutEntries.map((entry) => (
+                  <GutDayDetailCard key={entry.id} entry={entry} />
                 ))
               ) : null}
 
-              {intimacyEntriesStatus.status === "ready" &&
-              selectedIntimacyEntries.length === 0 ? (
+              {cycleEntriesStatus.status === "ready" && selectedGutEntries.length === 0 ? (
                 <article
-                  data-testid="calendar-intimacy-entries-empty"
+                  data-testid="calendar-gut-entries-empty"
                   className="rounded-[1.5rem] border border-dashed border-line bg-white/75 px-4 py-5 text-sm leading-6 text-foreground/58"
                 >
-                  No intimacy entries logged for this day.
+                  No gut checks logged for this day.
                 </article>
               ) : null}
             </div>
           </div>
+          ) : null}
         </div>
       </section>
     </div>

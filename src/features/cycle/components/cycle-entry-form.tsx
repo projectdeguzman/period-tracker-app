@@ -7,6 +7,7 @@ import {
   type ChangeEventHandler,
   type SubmitEventHandler,
 } from "react";
+import { FieldLabel } from "@/features/shared/components/field-label";
 import { addCycleEntry } from "@/lib/cycle-entry-store";
 import type {
   CycleLogType,
@@ -94,15 +95,21 @@ function getInitialLogType(input: string | null): CycleLogType {
   return "Symptoms";
 }
 
+function getInitialDate(input: string | null) {
+  return input || new Date().toISOString().slice(0, 10);
+}
+
 export function CycleEntryForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [values, setValues] = useState<CycleFormValues>(() => ({
     ...initialValues,
+    date: getInitialDate(searchParams.get("date")),
     logType: getInitialLogType(searchParams.get("logType")),
   }));
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const nextPath = searchParams.get("source") === "calendar" ? "/calendar" : "/";
 
   function updateValue<K extends keyof CycleFormValues>(
     key: K,
@@ -136,7 +143,7 @@ export function CycleEntryForm() {
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   };
 
@@ -177,7 +184,7 @@ export function CycleEntryForm() {
 
       <div className="mt-6 space-y-5">
         <label className="block" htmlFor="cycle-entry-date">
-          <span className="mb-2 block text-sm font-semibold">Date</span>
+          <FieldLabel required>Date</FieldLabel>
           <input
             id="cycle-entry-date"
             name="date"
@@ -191,7 +198,9 @@ export function CycleEntryForm() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">Log type</legend>
+          <legend>
+            <FieldLabel required>Log type</FieldLabel>
+          </legend>
           <div className="grid grid-cols-2 gap-3">
             {logTypeOptions.map((option) => (
               <button
@@ -215,11 +224,8 @@ export function CycleEntryForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Symptoms
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
+          <legend>
+            <FieldLabel optional>Symptoms</FieldLabel>
           </legend>
           <div className="flex flex-wrap gap-2">
             {symptomOptions.map((option) => {
@@ -252,11 +258,8 @@ export function CycleEntryForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Mood
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
+          <legend>
+            <FieldLabel optional>Mood</FieldLabel>
           </legend>
           <div className="flex flex-wrap gap-2">
             <button
@@ -297,12 +300,7 @@ export function CycleEntryForm() {
         </fieldset>
 
         <label className="block" htmlFor="cycle-cravings">
-          <span className="mb-2 block text-sm font-semibold">
-            Cravings
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
-          </span>
+          <FieldLabel optional>Cravings</FieldLabel>
           <input
             id="cycle-cravings"
             name="cravings"
@@ -316,11 +314,8 @@ export function CycleEntryForm() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Sex drive
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
+          <legend>
+            <FieldLabel optional>Sex drive</FieldLabel>
           </legend>
           <div className="grid grid-cols-4 gap-3">
             <button
@@ -361,11 +356,8 @@ export function CycleEntryForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Discharge
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
+          <legend>
+            <FieldLabel optional>Discharge</FieldLabel>
           </legend>
           <div className="grid grid-cols-2 gap-3">
             {dischargeOptions.map((option) => (
@@ -390,12 +382,7 @@ export function CycleEntryForm() {
         </fieldset>
 
         <label className="block" htmlFor="cycle-notes">
-          <span className="mb-2 block text-sm font-semibold">
-            Notes
-            <span className="ml-2 text-xs font-medium text-foreground/52">
-              Optional
-            </span>
-          </span>
+          <FieldLabel optional>Notes</FieldLabel>
           <textarea
             id="cycle-notes"
             name="notes"
@@ -407,6 +394,7 @@ export function CycleEntryForm() {
             className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
           />
         </label>
+
       </div>
 
       {errorMessage ? (
@@ -428,7 +416,7 @@ export function CycleEntryForm() {
           {isSubmitting ? "Saving..." : "Save entry"}
         </button>
         <Link
-          href="/"
+          href={nextPath}
           data-testid="cancel-cycle-entry"
           className="rounded-full border border-line bg-white px-5 py-3 text-sm font-semibold transition hover:bg-surface-muted"
         >

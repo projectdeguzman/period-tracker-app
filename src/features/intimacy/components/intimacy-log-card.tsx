@@ -4,9 +4,13 @@ import type { IntimacyEntry } from "@/types/tracking";
 
 type IntimacyLogCardProps = {
   entry: IntimacyEntry;
+  hideIntimacyDetails?: boolean;
 };
 
-export function IntimacyLogCard({ entry }: IntimacyLogCardProps) {
+export function IntimacyLogCard({
+  entry,
+  hideIntimacyDetails = false,
+}: IntimacyLogCardProps) {
   return (
     <article
       data-testid={`intimacy-log-card-${entry.id}`}
@@ -24,16 +28,26 @@ export function IntimacyLogCard({ entry }: IntimacyLogCardProps) {
         </span>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm leading-6 text-foreground/74">
-        {entry.note}
-      </p>
+      {!hideIntimacyDetails ? (
+        <p className="mt-3 line-clamp-2 text-sm leading-6 text-foreground/74">
+          {entry.note}
+        </p>
+      ) : (
+        <p className="mt-3 line-clamp-2 text-sm leading-6 text-foreground/52">
+          Intimacy details hidden.
+        </p>
+      )}
 
       <div
         data-testid={`intimacy-log-card-footer-${entry.id}`}
         className="mt-auto flex items-center justify-between border-t border-line/70 pt-4 text-sm text-foreground/62"
       >
         <span>
-          {entry.protectionUsed ? "Protection used" : "No protection logged"}
+          {hideIntimacyDetails
+            ? "Details lowkey"
+            : entry.protectionUsed
+              ? "Protection used"
+              : "No protection logged"}
         </span>
         <Link
           href={`/logs/intimacy/${entry.id}`}

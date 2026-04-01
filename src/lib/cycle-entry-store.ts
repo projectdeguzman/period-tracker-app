@@ -7,6 +7,9 @@ import type {
   CycleEntry,
   CycleLogType,
   DischargeType,
+  GutEffort,
+  GutPoopType,
+  GutTrackingEntry,
   Mood,
   SexDriveLevel,
 } from "@/types/tracking";
@@ -34,8 +37,18 @@ type CycleEntryRow = {
   notes: string | null;
 };
 
+type GutTrackingRow = {
+  id: string;
+  cycle_entry_id: string | null;
+  log_date: string;
+  poop_type: GutPoopType;
+  effort: GutEffort | null;
+  notes: string | null;
+};
+
 type CycleStoreSnapshot = {
   entries: CycleEntry[];
+  gutEntries: GutTrackingEntry[];
   errorMessage: string;
   status: "idle" | "loading" | "ready" | "error";
   userId: string | null;
@@ -48,6 +61,7 @@ let loadPromise: Promise<void> | null = null;
 let lastLoadedUserId: string | null | undefined;
 let store: CycleStoreSnapshot = {
   entries: [],
+  gutEntries: [],
   errorMessage: "",
   status: "idle",
   userId: null,
@@ -74,7 +88,17 @@ function getErrorMessage(error: unknown, fallbackMessage: string) {
   return fallbackMessage;
 }
 
-function toEntry(row: CycleEntryRow): CycleEntry {
+function toGutTracking(row: GutTrackingRow): GutTrackingEntry {
+  return {
+    id: row.id,
+    logDate: row.log_date,
+    poopType: row.poop_type,
+    effort: row.effort ?? "",
+    notes: row.notes ?? "",
+  };
+}
+
+function toEntry(row: CycleEntryRow, gutTracking: GutTrackingEntry | null): CycleEntry {
   return {
     id: row.id,
     date: row.date,
@@ -85,6 +109,7 @@ function toEntry(row: CycleEntryRow): CycleEntry {
     sexDrive: row.sex_drive ?? "",
     discharge: row.discharge ?? "",
     notes: row.notes ?? "",
+    gutTracking,
   };
 }
 
@@ -105,6 +130,7 @@ async function loadEntries() {
         lastLoadedUserId = null;
         store = {
           entries: [],
+          gutEntries: [],
           errorMessage: "",
           status: "ready",
           userId: null,
@@ -141,8 +167,32 @@ async function loadEntries() {
         throw error;
       }
 
+      const cycleRows = (data ?? []) as CycleEntryRow[];
+      const { data: gutData, error: gutError } = await supabase
+        .from("gut_tracking")
+        .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+        .order("created_at", { ascending: false });
+
+      if (gutError) {
+        throw gutError;
+      }
+
+      const gutRows = (gutData ?? []) as GutTrackingRow[];
+      const gutEntriesByCycleId = new Map<string, GutTrackingEntry>();
+
+      for (const row of gutRows) {
+        if (!row.cycle_entry_id || gutEntriesByCycleId.has(row.cycle_entry_id)) {
+          continue;
+        }
+
+        gutEntriesByCycleId.set(row.cycle_entry_id, toGutTracking(row));
+      }
+
       store = {
-        entries: (data ?? []).map((row) => toEntry(row as CycleEntryRow)),
+        entries: cycleRows.map((row) =>
+          toEntry(row, gutEntriesByCycleId.get(row.id) ?? null),
+        ),
+        gutEntries: gutRows.map((row) => toGutTracking(row)),
         errorMessage: "",
         status: "ready",
         userId: user.id,
@@ -153,6 +203,7 @@ async function loadEntries() {
       store = {
         ...store,
         entries: [],
+        gutEntries: [],
         errorMessage: getErrorMessage(error, "Unable to load cycle entries."),
         status: "error",
       };
@@ -221,11 +272,13 @@ export async function addCycleEntry(entry: NewCycleEntry) {
     throw error;
   }
 
-  const nextEntry = toEntry(data as CycleEntryRow);
+  const cycleEntryRow = data as CycleEntryRow;
+  const nextEntry = toEntry(cycleEntryRow, null);
 
   lastLoadedUserId = user.id;
   store = {
     entries: [nextEntry, ...store.entries.filter((current) => current.id !== nextEntry.id)],
+    gutEntries: store.gutEntries,
     errorMessage: "",
     status: "ready",
     userId: user.id,
@@ -235,12 +288,77 @@ export async function addCycleEntry(entry: NewCycleEntry) {
   return nextEntry;
 }
 
+type NewGutTrackingEntry = {
+  logDate: string;
+  poopType: GutPoopType | "";
+  effort: GutEffort | "";
+  notes: string;
+};
+
+export async function addGutTrackingEntry(entry: NewGutTrackingEntry) {
+  const user = await getAuthenticatedUser();
+
+  if (!user) {
+    throw new Error("You need to sign in to save gut checks.");
+  }
+
+  if (!entry.poopType) {
+    throw new Error("Choose a gut type to save your gut check.");
+  }
+
+  const matchingCycleEntry = store.entries.find((currentEntry) => {
+    return currentEntry.date === entry.logDate;
+  });
+
+  const { data, error } = await supabase
+    .from("gut_tracking")
+    .insert({
+      user_id: user.id,
+      cycle_entry_id: matchingCycleEntry?.id ?? null,
+      log_date: entry.logDate,
+      poop_type: entry.poopType,
+      effort: entry.effort || null,
+      notes: entry.notes || null,
+    })
+    .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+    .single();
+
+  if (error) {
+    console.error("Failed to save gut tracking entry:", error);
+    throw error;
+  }
+
+  const nextGutTracking = toGutTracking(data as GutTrackingRow);
+
+  store = {
+    ...store,
+    entries: matchingCycleEntry
+      ? store.entries.map((currentEntry) =>
+          currentEntry.id === matchingCycleEntry.id
+            ? { ...currentEntry, gutTracking: nextGutTracking }
+            : currentEntry,
+        )
+      : store.entries,
+    gutEntries: [
+      nextGutTracking,
+      ...store.gutEntries.filter((currentEntry) => currentEntry.id !== nextGutTracking.id),
+    ],
+  };
+  emitChange();
+
+  return nextGutTracking;
+}
+
 export function useCycleEntriesState() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function useCycleEntries() {
   return useCycleEntriesState().entries;
+}
+
+export function useGutTrackingEntries() {
+  return useCycleEntriesState().gutEntries;
 }
 
 export function useCycleEntriesStatus() {
