@@ -10,8 +10,8 @@ export type WhatsNewRelease = {
 };
 
 export const currentWhatsNewRelease: WhatsNewRelease = {
-  id: "v2.0.0",
-  label: "v2.0.0",
+  id: "v2.3.0",
+  label: "v2.3.0",
   title: "What’s new in Luna ✨",
   summary:
     "Gut check officially entered the chat, with more privacy controls and a little extra personality.",
@@ -19,7 +19,6 @@ export const currentWhatsNewRelease: WhatsNewRelease = {
     "Gut Check is here 💩 with calendar indicators, day details, and quick logging.",
     "Optional streaks are live for when your gut has main character momentum ✨",
     "New privacy settings keep gut check and intimacy details more lowkey when you want them to be 🤍",
-    "Calendar logging is faster now, with date-prefilled forms right from Day details.",
   ],
 };
 

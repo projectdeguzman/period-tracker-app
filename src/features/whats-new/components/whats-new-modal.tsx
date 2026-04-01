@@ -85,11 +85,11 @@ export function WhatsNewModal() {
         </div>
 
         <div className="mt-5 rounded-[1.5rem] border border-line bg-surface-muted/65 px-4 py-4">
-          <ul className="space-y-3 text-sm leading-6 text-foreground/72">
+          <ul className="space-y-3 text-sm leading-7 text-foreground/72">
             {currentWhatsNewRelease.items.map((item) => (
-              <li key={item} className="flex gap-3">
-                <span className="mt-1 h-2 w-2 rounded-full bg-accent" />
-                <span>{item}</span>
+              <li key={item} className="flex items-start gap-3">
+                <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-accent" />
+                <span className="flex-1">{item}</span>
               </li>
             ))}
           </ul>
