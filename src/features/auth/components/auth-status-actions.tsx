@@ -83,14 +83,14 @@ export function AuthStatusActions() {
             data-testid="user-menu-dropdown"
             className="absolute right-0 top-13 z-20 min-w-40 rounded-[1.25rem] border border-white/70 bg-white/95 p-2 shadow-[0_18px_50px_rgba(34,27,40,0.12)] backdrop-blur"
           >
-            <button
-              type="button"
+            <Link
+              href="/account"
               role="menuitem"
               className="flex w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-foreground transition hover:bg-surface-muted"
               data-testid="account-menu-button"
             >
               Account
-            </button>
+            </Link>
             <button
               type="button"
               role="menuitem"

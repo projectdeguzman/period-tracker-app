@@ -48,6 +48,7 @@ type GutTrackingRow = {
 
 type CycleStoreSnapshot = {
   entries: CycleEntry[];
+  gutEntries: GutTrackingEntry[];
   errorMessage: string;
   status: "idle" | "loading" | "ready" | "error";
   userId: string | null;
@@ -60,6 +61,7 @@ let loadPromise: Promise<void> | null = null;
 let lastLoadedUserId: string | null | undefined;
 let store: CycleStoreSnapshot = {
   entries: [],
+  gutEntries: [],
   errorMessage: "",
   status: "idle",
   userId: null,
@@ -128,6 +130,7 @@ async function loadEntries() {
         lastLoadedUserId = null;
         store = {
           entries: [],
+          gutEntries: [],
           errorMessage: "",
           status: "ready",
           userId: null,
@@ -165,33 +168,31 @@ async function loadEntries() {
       }
 
       const cycleRows = (data ?? []) as CycleEntryRow[];
-      const cycleEntryIds = cycleRows.map((row) => row.id);
+      const { data: gutData, error: gutError } = await supabase
+        .from("gut_tracking")
+        .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
+        .order("created_at", { ascending: false });
+
+      if (gutError) {
+        throw gutError;
+      }
+
+      const gutRows = (gutData ?? []) as GutTrackingRow[];
       const gutEntriesByCycleId = new Map<string, GutTrackingEntry>();
 
-      if (cycleEntryIds.length > 0) {
-        const { data: gutData, error: gutError } = await supabase
-          .from("gut_tracking")
-          .select("id, cycle_entry_id, log_date, poop_type, effort, notes")
-          .in("cycle_entry_id", cycleEntryIds)
-          .order("created_at", { ascending: false });
-
-        if (gutError) {
-          throw gutError;
+      for (const row of gutRows) {
+        if (!row.cycle_entry_id || gutEntriesByCycleId.has(row.cycle_entry_id)) {
+          continue;
         }
 
-        for (const row of (gutData ?? []) as GutTrackingRow[]) {
-          if (!row.cycle_entry_id || gutEntriesByCycleId.has(row.cycle_entry_id)) {
-            continue;
-          }
-
-          gutEntriesByCycleId.set(row.cycle_entry_id, toGutTracking(row));
-        }
+        gutEntriesByCycleId.set(row.cycle_entry_id, toGutTracking(row));
       }
 
       store = {
         entries: cycleRows.map((row) =>
           toEntry(row, gutEntriesByCycleId.get(row.id) ?? null),
         ),
+        gutEntries: gutRows.map((row) => toGutTracking(row)),
         errorMessage: "",
         status: "ready",
         userId: user.id,
@@ -202,6 +203,7 @@ async function loadEntries() {
       store = {
         ...store,
         entries: [],
+        gutEntries: [],
         errorMessage: getErrorMessage(error, "Unable to load cycle entries."),
         status: "error",
       };
@@ -276,6 +278,7 @@ export async function addCycleEntry(entry: NewCycleEntry) {
   lastLoadedUserId = user.id;
   store = {
     entries: [nextEntry, ...store.entries.filter((current) => current.id !== nextEntry.id)],
+    gutEntries: store.gutEntries,
     errorMessage: "",
     status: "ready",
     userId: user.id,
@@ -327,17 +330,21 @@ export async function addGutTrackingEntry(entry: NewGutTrackingEntry) {
 
   const nextGutTracking = toGutTracking(data as GutTrackingRow);
 
-  if (matchingCycleEntry) {
-    store = {
-      ...store,
-      entries: store.entries.map((currentEntry) =>
-        currentEntry.id === matchingCycleEntry.id
-          ? { ...currentEntry, gutTracking: nextGutTracking }
-          : currentEntry,
-      ),
-    };
-    emitChange();
-  }
+  store = {
+    ...store,
+    entries: matchingCycleEntry
+      ? store.entries.map((currentEntry) =>
+          currentEntry.id === matchingCycleEntry.id
+            ? { ...currentEntry, gutTracking: nextGutTracking }
+            : currentEntry,
+        )
+      : store.entries,
+    gutEntries: [
+      nextGutTracking,
+      ...store.gutEntries.filter((currentEntry) => currentEntry.id !== nextGutTracking.id),
+    ],
+  };
+  emitChange();
 
   return nextGutTracking;
 }
@@ -348,6 +355,10 @@ export function useCycleEntriesState() {
 
 export function useCycleEntries() {
   return useCycleEntriesState().entries;
+}
+
+export function useGutTrackingEntries() {
+  return useCycleEntriesState().gutEntries;
 }
 
 export function useCycleEntriesStatus() {

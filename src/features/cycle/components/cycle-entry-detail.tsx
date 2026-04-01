@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { GutStreakIndicator } from "@/features/cycle/components/gut-streak-indicator";
 import { formatShortDate } from "@/lib/format-date";
 import { useCycleEntryState } from "@/lib/cycle-entry-store";
+import { useHideGutCheckDetails } from "@/lib/profile-preferences-store";
 
 type CycleEntryDetailProps = {
   id: string;
@@ -11,6 +13,7 @@ type CycleEntryDetailProps = {
 export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
   const router = useRouter();
   const { entry, errorMessage, status } = useCycleEntryState(id);
+  const hideGutCheckDetails = useHideGutCheckDetails();
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -138,24 +141,29 @@ export function CycleEntryDetail({ id }: CycleEntryDetailProps) {
               </p>
             </div>
 
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
-                Gut check
-              </p>
-              {entry.gutTracking ? (
-                <div className="mt-1 space-y-1 text-sm leading-6 text-foreground/78">
-                  <p className="capitalize">Type: {entry.gutTracking.poopType}</p>
-                  <p className="capitalize">
-                    Effort: {entry.gutTracking.effort || "Not recorded"}
-                  </p>
-                  <p>{entry.gutTracking.notes || "No gut notes added."}</p>
-                </div>
-              ) : (
-                <p className="mt-1 text-sm leading-6 text-foreground/78">
-                  No gut check logged.
+            {!hideGutCheckDetails ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
+                  Gut check
                 </p>
-              )}
-            </div>
+                {entry.gutTracking ? (
+                  <div className="mt-1 space-y-2 text-sm leading-6 text-foreground/78">
+                    <p className="capitalize">Type: {entry.gutTracking.poopType}</p>
+                    <p className="capitalize">
+                      Effort: {entry.gutTracking.effort || "Not recorded"}
+                    </p>
+                    <p>{entry.gutTracking.notes || "No gut notes added."}</p>
+                    <div className="border-t border-line/70 pt-2">
+                      <GutStreakIndicator date={entry.gutTracking.logDate} />
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-sm leading-6 text-foreground/78">
+                    No gut check logged.
+                  </p>
+                )}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}

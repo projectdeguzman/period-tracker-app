@@ -1,8 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type ChangeEventHandler, type SubmitEventHandler } from "react";
 import { addGutTrackingEntry } from "@/lib/cycle-entry-store";
+import { FieldLabel } from "@/features/shared/components/field-label";
 import type { GutEffort, GutPoopType } from "@/types/tracking";
 
 const gutPoopTypeOptions: GutPoopType[] = ["smooth", "hard", "loose", "none"];
@@ -30,10 +32,14 @@ const initialValues: GutCheckFormValues = {
 
 export function GutCheckForm() {
   const router = useRouter();
-  const [values, setValues] = useState<GutCheckFormValues>(initialValues);
+  const searchParams = useSearchParams();
+  const [values, setValues] = useState<GutCheckFormValues>(() => ({
+    ...initialValues,
+    logDate: searchParams.get("date") || initialValues.logDate,
+  }));
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const nextPath = searchParams.get("source") === "calendar" ? "/calendar" : "/";
 
   function updateValue<K extends keyof GutCheckFormValues>(
     key: K,
@@ -45,7 +51,6 @@ export function GutCheckForm() {
   const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     setErrorMessage("");
-    setIsSaved(false);
 
     if (!values.poopType) {
       setErrorMessage("Choose an option or skip gut check for today.");
@@ -56,14 +61,14 @@ export function GutCheckForm() {
 
     try {
       await addGutTrackingEntry(values);
-      setIsSaved(true);
+      router.push(nextPath);
       router.refresh();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Unable to save gut check.",
       );
-    } finally {
       setIsSubmitting(false);
+      return;
     }
   };
 
@@ -92,7 +97,7 @@ export function GutCheckForm() {
 
       <div className="mt-6 space-y-5">
         <label className="block" htmlFor="gut-check-date">
-          <span className="mb-2 block text-sm font-semibold">Date</span>
+          <FieldLabel required>Date</FieldLabel>
           <input
             id="gut-check-date"
             name="logDate"
@@ -106,7 +111,9 @@ export function GutCheckForm() {
         </label>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">Gut type</legend>
+          <legend>
+            <FieldLabel required>Gut type</FieldLabel>
+          </legend>
           <div className="grid grid-cols-2 gap-3">
             {gutPoopTypeOptions.map((option) => (
               <button
@@ -130,9 +137,8 @@ export function GutCheckForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-2 block text-sm font-semibold">
-            Effort
-            <span className="ml-2 text-xs font-medium text-foreground/52">Optional</span>
+          <legend>
+            <FieldLabel optional>Effort</FieldLabel>
           </legend>
           <div className="grid grid-cols-3 gap-3">
             <button
@@ -172,10 +178,7 @@ export function GutCheckForm() {
         </fieldset>
 
         <label className="block" htmlFor="gut-check-notes">
-          <span className="mb-2 block text-sm font-semibold">
-            Notes
-            <span className="ml-2 text-xs font-medium text-foreground/52">Optional</span>
-          </span>
+          <FieldLabel optional>Notes</FieldLabel>
           <textarea
             id="gut-check-notes"
             name="notes"
@@ -198,15 +201,6 @@ export function GutCheckForm() {
         </p>
       ) : null}
 
-      {isSaved ? (
-        <p
-          className="mt-4 rounded-2xl border border-line bg-surface-muted px-4 py-3 text-sm text-foreground/72"
-          data-testid="gut-check-form-success"
-        >
-          Gut check saved.
-        </p>
-      ) : null}
-
       <div className="mt-6 flex items-center gap-3">
         <button
           type="submit"
@@ -216,6 +210,12 @@ export function GutCheckForm() {
         >
           {isSubmitting ? "Saving..." : "Save gut check"}
         </button>
+        <Link
+          href={nextPath}
+          className="rounded-full border border-line bg-white px-5 py-3 text-sm font-semibold transition hover:bg-surface-muted"
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );

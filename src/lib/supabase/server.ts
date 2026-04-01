@@ -7,6 +7,9 @@ type ProfileRecord = {
   created_at: string;
   date_of_birth: string | null;
   display_name: string | null;
+  enable_gut_check_streaks: boolean;
+  hide_gut_check_details: boolean;
+  hide_intimacy_details: boolean;
   id: string;
   name: string | null;
 };
@@ -96,7 +99,7 @@ export async function getAuthenticatedProfile() {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, created_at, display_name, name, date_of_birth, avg_cycle_length")
+    .select("id, created_at, display_name, name, date_of_birth, avg_cycle_length, hide_gut_check_details, enable_gut_check_streaks, hide_intimacy_details")
     .eq("id", user.id)
     .maybeSingle();
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { WhatsNewModal } from "@/features/whats-new/components/whats-new-modal";
 import { ensureAuthenticatedProfile } from "@/lib/supabase/server";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full bg-background text-foreground">
         {children}
+        <WhatsNewModal />
       </body>
     </html>
   );

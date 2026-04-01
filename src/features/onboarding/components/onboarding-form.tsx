@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEventHandler, type FormEventHandler } from "react";
+import { FieldLabel } from "@/features/shared/components/field-label";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type OnboardingFormProps = {
@@ -138,11 +139,12 @@ export function OnboardingForm({
           data-testid="onboarding-form"
         >
           <label className="block" htmlFor="onboarding-name">
-            <span className="mb-2 block text-sm font-semibold">Name</span>
+            <FieldLabel required>Name</FieldLabel>
             <input
               id="onboarding-name"
               name="name"
               type="text"
+              required
               value={values.name}
               onChange={handleNameChange}
               className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
@@ -151,11 +153,12 @@ export function OnboardingForm({
           </label>
 
           <label className="block" htmlFor="onboarding-date-of-birth">
-            <span className="mb-2 block text-sm font-semibold">Date of Birth</span>
+            <FieldLabel required>Date of Birth</FieldLabel>
             <input
               id="onboarding-date-of-birth"
               name="dateOfBirth"
               type="date"
+              required
               value={values.dateOfBirth}
               onChange={handleDateOfBirthChange}
               className="w-full rounded-2xl border border-line bg-surface-muted px-4 py-3 outline-none transition focus:border-accent focus:bg-white"
@@ -164,10 +167,7 @@ export function OnboardingForm({
           </label>
 
           <label className="block" htmlFor="onboarding-cycle-length">
-            <span className="mb-2 block text-sm font-semibold">
-              Typical cycle length in days
-              <span className="ml-2 text-xs font-medium text-foreground/52">Optional</span>
-            </span>
+            <FieldLabel optional>Typical cycle length in days</FieldLabel>
             <input
               id="onboarding-cycle-length"
               name="avgCycleLength"

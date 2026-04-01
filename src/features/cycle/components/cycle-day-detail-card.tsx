@@ -1,12 +1,17 @@
 import Link from "next/link";
+import { GutStreakIndicator } from "@/features/cycle/components/gut-streak-indicator";
 import { formatShortDate } from "@/lib/format-date";
 import type { CycleEntry } from "@/types/tracking";
 
 type CycleDayDetailCardProps = {
   entry: CycleEntry;
+  hideGutDetails?: boolean;
 };
 
-export function CycleDayDetailCard({ entry }: CycleDayDetailCardProps) {
+export function CycleDayDetailCard({
+  entry,
+  hideGutDetails = false,
+}: CycleDayDetailCardProps) {
   return (
     <article
       data-testid={`calendar-cycle-day-card-${entry.id}`}
@@ -51,7 +56,7 @@ export function CycleDayDetailCard({ entry }: CycleDayDetailCardProps) {
           </div>
         ) : null}
 
-        {entry.gutTracking ? (
+        {entry.gutTracking && !hideGutDetails ? (
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground/46">
               Gut check
@@ -62,6 +67,9 @@ export function CycleDayDetailCard({ entry }: CycleDayDetailCardProps) {
                 ? ` • ${entry.gutTracking.effort}`
                 : " • effort not recorded"}
             </p>
+            <div className="mt-3 border-t border-line/70 pt-2">
+              <GutStreakIndicator date={entry.gutTracking.logDate} />
+            </div>
           </div>
         ) : null}
       </div>
