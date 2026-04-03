@@ -112,7 +112,7 @@ export function GutCheckForm() {
 
         <fieldset>
           <legend>
-            <FieldLabel required>Gut type</FieldLabel>
+            <FieldLabel required>Bowel Movement</FieldLabel>
           </legend>
           <div className="grid grid-cols-2 gap-3">
             {gutPoopTypeOptions.map((option) => (
